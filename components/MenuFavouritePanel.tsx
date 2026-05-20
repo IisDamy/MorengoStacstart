@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image, TouchableOpacity} from 'react-native'
+import { View, Text, ScrollView, Image, TouchableOpacity, Pressable, ActivityIndicator} from 'react-native'
 import React, { useEffect } from 'react'
 import { getMenuItems } from '@/lib/appwrite'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
@@ -6,8 +6,8 @@ import MenuItemCartAddPopUp from './MenuItemCartAddPopUp'
 import { getModifierOptions } from '@/lib/appwrite'
 import { formatNaira } from '@/constants/utils'
 import {router} from 'expo-router'
-
-
+import useAppwrite from '@/lib/useAppwrite'
+import { useLocalSearchParams } from 'expo-router'
 interface MenuFavouritePanelProps {
   seeAll: boolean
 }
@@ -16,26 +16,15 @@ interface MenuFavouritePanelProps {
 
 
 const MenuFavouritePanel = ({ seeAll }: MenuFavouritePanelProps) => {
-
+  const { isFavourite} = useLocalSearchParams<{isFavourite: string}>()
+  const {data, loading, refetch, error} = useAppwrite({fn:getMenuItems, params: {isFavourite:'true'}})
   const [menuItems, setMenuItems] = React.useState([])
   const [openItemCartAdd, setOpenItemCartAdd] = React.useState(false)
   const [selectedItem, setSelectedItem] = React.useState({name:'', price: 0, image:'', vendors:{}, id:null})
 
-
-
-  useEffect(() => {
-    const fetchMenuItems = async () => {
-      try {
-        const res = await getMenuItems({ isFavourite: true })
-        if (!res) throw new Error('No menu item exists currently')
-        setMenuItems(res)
-      } catch (e) {
-        console.log(e)
-      }
-    }
-    fetchMenuItems()
-  }, [])
-
+ useEffect(() => {       
+      if (!data && error) refetch()          
+     }, [error]);
 
 
   const handleSelectItem =  (item:any) => {
@@ -47,11 +36,13 @@ const MenuFavouritePanel = ({ seeAll }: MenuFavouritePanelProps) => {
 
 
   return (
-    <View className='mt-4 mb-3 w-screen pl-5'>
-
-
+    <View className='mt-4 mb-3 w-screen pl-5'>    
+      {loading? 
+      <ActivityIndicator size="small" color="#4386e3" className='my-auto  '/>
+        :
+      <>
       <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-        {menuItems?.slice(0, 4).reverse().map((item) =>
+        {data?.slice(0, 4).reverse().map((item) =>
           <View
             className='rounded bg-[#F8F8F8] p-2 mx-1 my-2 w-[240] h-[220] rounded-3xl mr-6'
             key={item?.$id}
@@ -69,24 +60,24 @@ const MenuFavouritePanel = ({ seeAll }: MenuFavouritePanelProps) => {
             <View className='w-full flex flex-row mb-2 justify-between mt-2'>
               <View className='flex w-fit gap-[0.5] justify-between self-start px-2 flex-col'>
                 <TouchableOpacity>
-                  <Text className='font-bold text-md'>{item?.name}</Text>
+                  <Text className='font-[Nunito-bold] text-md'>{item?.name}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity>
-                  <Text className='text-sm mt-1 font-bold text-green-400 w-[100]'
+                  <Text className='text-sm mt-1 font-[Nunito-bold] text-green-400 w-[120]'
                     onPress={()=> router.push(`/(screens)/SearchPage?vendors=${item.vendors.$id}`)}
                   >{item.vendors?.name}
                   </Text>
                 </TouchableOpacity>
-                <Text className='text-sm mt-1 text-green-400'>{formatNaira(item.price)}</Text>
+                <Text className='text-sm mt-1 text-green-400 font-[Nunito-regular]'>{formatNaira(item.price)}</Text>
               </View>
 
               <View>
                 <View className='flex items-center mt-2'>
-                  <Text className='text-xs text-orange-300 text-center'>open / closed:</Text>
-                  <Text className='text-sm text-orange-300'>12 - 4</Text>
+                  <Text className='text-xs text-orange-300 text-center font-[Nunito-regular]'>opens / closes:</Text>
+                  <Text className='text-xs text-orange-300 font-[Nunito-regular]'>{item.vendors.open} - {item.vendors.closes}</Text>
                   <View className='flex-row items-center mt-1'>
                     <MaterialIcons name='star' color={'gold'} />
-                    <Text className='text-sm text-red-300'>{item.rating} 4.5</Text>
+                    <Text className='text-sm text-red-300 font-[Nunito-regular]'>{item.vendors.rating} 4.5</Text>
                   </View>
                 </View>
               </View>
@@ -101,7 +92,7 @@ const MenuFavouritePanel = ({ seeAll }: MenuFavouritePanelProps) => {
       onClose={() => setOpenItemCartAdd(false)}
       selectedItem={selectedItem} 
       />
-       
+      </>}
     </View>
   )
 }

@@ -49,7 +49,7 @@ const LocationSideButton = ({name, onPress, color}:LocationSideButtonProps) => {
                 borderColor:name==='add'?'#f97316':name==='add-location-alt'?'#22C55E':'#EF4444'
             }]]}
           >
-           {name==='add'?<Text className="text-3xl text-white">+</Text>: 
+           {name==='add'?<Text className="text-3xl text-white font-[Nunito-bold]">+</Text>: 
                          <MaterialIcons
                             name={name}
                             color={'white'}

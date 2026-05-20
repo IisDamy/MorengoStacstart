@@ -17,3 +17,13 @@
     export const formatNaira = (amount:number) => {
   return '₦' + Number(amount).toLocaleString('en-NG');
 }
+
+
+export const convertTo12Hour = (time24: string) => {
+  const [hours] = time24.split(".").map(Number);
+
+  const period = hours >= 12 ? "PM" : "AM";
+  const formattedHours = hours % 12 || 12;
+
+  return `${formattedHours} ${period}`;
+};

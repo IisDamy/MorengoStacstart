@@ -1,48 +1,157 @@
-// to wrap sign sign in
-// sign in is pop up that pops on dashboard if user is logged outswss           
+
+import React, { ReactNode, useCallback, useEffect} from "react";
+import {
+  Dimensions, Modal,TouchableWithoutFeedback, View, TouchableOpacity, Text, TextInput, Image, type ViewStyle,
+} from "react-native";
+
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 
-import { Modal, View, Text, Pressable, ScrollView } from "react-native";
-import React,{ useState, ReactNode } from "react";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { images } from "@/constants";
-interface PopUpWrapperProps {
-  children: ReactNode,
-  open:boolean,
-  handleOpen: () => void
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+
+const SHEET_HEIGHT = SCREEN_HEIGHT * 0.6;
+
+
+
+const SNAP_SPRING_CONFIG = {
+  damping: 20,
+  stiffness: 200,
+  mass: 0.8,
+};
+
+const CLOSE_SPRING_CONFIG = {
+  damping: 18,
+  stiffness: 150,
+  mass: 0.7,
+};
+
+
+
+interface MenuItemCartAddPopUpProps {
+  visible: boolean;
+  onClose: () => void;
+  sheetStyle?: ViewStyle;
+  children: ReactNode
+
+
 }
 
- const PopupWrapper: React.FC<PopUpWrapperProps> = ({children, open, handleOpen}) => {
+
+
+
+const MenuItemCartAddPopUp: React.FC<MenuItemCartAddPopUpProps> = ({
+  onClose,
+  visible,
+  sheetStyle,
+  children
+}) => {
+
+
+  const translateY = useSharedValue(SHEET_HEIGHT);
+
+  const overlayOpacity = useSharedValue(0);
+
+  const triggerClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  const animateClose = useCallback(() => {
+    "worklet";
+    overlayOpacity.value = withTiming(0, { duration: 220 });
+    translateY.value = withSpring(SHEET_HEIGHT, CLOSE_SPRING_CONFIG, (done) => {
+      if (done) scheduleOnRN(triggerClose);
+    });
+  }, [overlayOpacity, translateY, triggerClose]);
+
+
+
+
+  useEffect(() => {
+    if (visible) {
+      translateY.value = SHEET_HEIGHT;
+      overlayOpacity.value = 0;
+
+      translateY.value = withSpring(0, SNAP_SPRING_CONFIG);
+      overlayOpacity.value = withTiming(1, {
+        duration: 280,
+        easing: Easing.out(Easing.cubic),
+      });
+    } else {
+      translateY.value = SHEET_HEIGHT;
+      overlayOpacity.value = 0;
+    }
+  }, [visible]); 
+
   
 
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const overlayAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
+
+  const handleOverlayPress = useCallback(() => {
+    animateClose();
+  }, [animateClose]);
+
+
+
+
   return (
-    <>
-      <Modal transparent animationType="fade" visible={open}>
-        <View style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.4)",
-          justifyContent: "center",
-          alignItems: "center"
-        }}>
-          <View style={{
-            backgroundColor: "#fff",
-            justifyContent: "center",
-          alignItems: "center",
-            padding: 18,
-            paddingTop:25,
-            borderRadius: 15,
-          }}>
-              <Pressable onPress={handleOpen}>
-              <MaterialIcons name='close' color={'#EF4444'} size={30} className="absolute self-center z-2 top-[230]  "/>
-            </Pressable>
+    
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={handleOverlayPress}
+    >
+    
+        <TouchableWithoutFeedback onPress={handleOverlayPress}>
+          <Animated.View
+            className="absolute inset-0 bg-black/55"
+            style={overlayAnimatedStyle}
+          />
+        </TouchableWithoutFeedback>
 
-            {children}
-          </View>
-        </View>
-      </Modal>
-    </>
+   
+        
+          <Animated.View
+            className="w-full absolute bottom-0 bg-white rounded-t-3xl overflow-hidden shadow-2xl"
+            style={[{ height: SHEET_HEIGHT }, sheetAnimatedStyle, sheetStyle]}
+          >
+            <View
+              className="w-full items-center pt-3 pb-1"
+              pointerEvents="none"
+            >
+              <View className="w-10 h-1 rounded-full bg-neutral-300" />
+            </View>
+          
+            <View className="flex-1  px-5 py-2">
+                 <KeyboardAwareScrollView className='flex-1 h-full'
+        keyboardShouldPersistTaps="handled"
+         enableOnAndroid
+  extraScrollHeight={120}>
+      {children}
+    </KeyboardAwareScrollView>
+              </View>
+          </Animated.View>
+        
+    </Modal>
+    
   );
-}
+};
 
-
-export default PopupWrapper
+export default MenuItemCartAddPopUp;

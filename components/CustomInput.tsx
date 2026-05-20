@@ -13,6 +13,7 @@ const CustomInput = ({
   maxLength,
   label,
   style,
+  multiline,
   secureTextEntry = false,
   keyboardType = "default",
 }: CustomInputProps) => {
@@ -21,11 +22,13 @@ const CustomInput = ({
   const [isFocused, setIsFocused] = React.useState(false);
   const [isVisible, setIsVisible] = useState(false)
   return (
-    <View className="rounded-[10] items-center p-2 flex-row bg-zinc-100  border-zinc-200 border "
+    <View className= {`rounded-[10] items-center  flex-row bg-zinc-100  border-zinc-200 h-[60]  border ${style}`}
 
     >
       <TextInput
-        className=" w-full  h-full "
+        multiline={multiline || false}
+        textAlignVertical={multiline ? 'top' : 'center'}
+        className=" w-full p-2 h-full font-[Nunito-regular] text-zinc-800"
         autoCapitalize="none"
         autoCorrect={false}
     maxLength={maxLength || undefined}

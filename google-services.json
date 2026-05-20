@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "256641738822",
+    "project_id": "morengo-delivery",
+    "storage_bucket": "morengo-delivery.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:256641738822:android:797e3d3e535c756f234247",
+        "android_client_info": {
+          "package_name": "com.Morengo.DeliverU"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6b9rHmBmSkAEIfpD3ZKsMR4W_-624oPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

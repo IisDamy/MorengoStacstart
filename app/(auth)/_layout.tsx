@@ -13,22 +13,22 @@ const AuthLayout = () => {
   // const {isAuthenticated} = useAuthStore()
   const { isAuthenticated, user, isLoading, fetchAuthenticatedUser } = useAuthStore();
 
-  useEffect(() => {
-    const initialize = async () =>{
-      try {
-         await refreshAuthStore();
+  // useEffect(() => {
+  //   const initialize = async () =>{
+  //     try {
+  //        await refreshAuthStore();
       
-      } catch (error) {
-        console.error('Error initializing auth store:', error);
-        Sentry.captureException(error);
-      }
-    }
+  //     } catch (error) {
+  //       console.error('Error initializing auth store:', error);
+  //       Sentry.captureException(error);
+  //     }
+  //   }
 
-    initialize();
-  }, []);
+  //   initialize();
+  // }, []);
 
 
-  if (user?.role!=='Customer' && isAuthenticated) return <Redirect href='/(screens)/Dashboard' />
+  if (user?.role !== 'Customer' && isAuthenticated) return <Redirect href='/(screens)/Dashboard' />
   if(isAuthenticated && !isLoading) return <Redirect href='/(tabs)' />
   
   return (
@@ -37,7 +37,7 @@ const AuthLayout = () => {
         <ScrollView keyboardShouldPersistTaps='handled' className=''>
         <View style={{height: Dimensions.get('screen').height/2.25}} className='bg-white'>   
             <ImageBackground source={images.loginGraphic} className='size-full rounded-b-lg'/>
-            <Image source={images.logo} className="self-center size-48 absolute -bottom-16 z-10" />
+            <Image source={images.morengologo}  className="self-center size-24 absolute bottom-0 z-10" />
         </View>
         <Slot />
     </ScrollView> 

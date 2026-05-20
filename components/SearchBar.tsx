@@ -3,6 +3,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Image, TextInput, TouchableOpacity, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Filter from "./Filter";
+
 
 const Searchbar = () => {
     const params = useLocalSearchParams<{ query: string }>();
@@ -19,12 +21,12 @@ const Searchbar = () => {
     }
 
     return (
-        <View className="searchbar w-[90%] relative flex flex-row items-center  justify-center bg-white shadow-md shadow-black/10 rounded-full  font-quicksand-medium text-dark-100 gap-5;
+        <View className="searchbar w-[90%] border relative flex flex-row items-center  justify-center bg-white shadow-md shadow-black/10 rounded-full  font-quicksand-medium text-dark-100 gap-5;
     ">
           <TextInput
                 className="flex-1 p-5"
                 placeholder="Search..."
-                value={query}
+                value={query }
                 onChangeText={handleSearch}
                 onSubmitEditing={handleSubmit}
                 placeholderTextColor="#A0A0A0"
@@ -40,7 +42,7 @@ const Searchbar = () => {
                     resizeMode="contain"
                     tintColor="#5D5F6D"
                 /> */}
-                <MaterialIcons name="tune" size={24} color="#5D5F6D" />
+                <Filter />
                 {/* <View className="absolute w-[150] h-[150] bg-white">
 
                 </View> */}

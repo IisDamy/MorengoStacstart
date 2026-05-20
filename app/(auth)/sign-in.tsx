@@ -66,7 +66,7 @@ export default function SignIn() {
   };
 
   return (
-    <View className=" bg-white flex  rounded-lg pb-20  p-5 mt-5">
+    <View className=" bg-white flex  rounded-lg pb-20  p-5 ">
       <View className="absolute top-[-320]  w-screen ">
         {/* obviously cha */}
         <Text

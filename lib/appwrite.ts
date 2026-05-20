@@ -14,8 +14,8 @@ import {
   Query,
   TablesDB,
 } from "react-native-appwrite";
-
-
+import useAuthStore from "@/store/auth.store";
+import User from '@/types'
 
 // # dont forget to delete this and add complete eas build for secrets before launch
 // # use eas secret:list to get already created secrets
@@ -45,6 +45,7 @@ export const appwriteConfig = {
 
 
 
+
 export const client = new Client();
 
 client
@@ -58,18 +59,19 @@ export const tablesDB = new TablesDB(client);
 export const storage = new Storage(client);
 export const messaging = new Messaging(client);
 
-
 export const createUser = async ({
   email,
   password,
   name,
   institution,
   number,
-  isStudent
-
+  isStudent,
 }: CreateUserParams) => {
   try {
-    // does this depracation affect functionality
+    const { setUser, setIsAuthenticated } =
+      useAuthStore.getState();
+
+    // Create auth account
     const newAccount = await account.create({
       userId: ID.unique(),
       email,
@@ -77,13 +79,15 @@ export const createUser = async ({
       name,
     });
 
-    if (!newAccount) throw Error;
+    if (!newAccount) {
+      throw new Error("Failed to create account");
+    }
 
+    // Sign in
     await SignIn({ email, password });
 
-    // let avatarUrl = avatars.getInitialsURL(name);
-    if(newAccount){
-        await tablesDB.createRow({
+    // Create profile row
+    const createdUser = await tablesDB.createRow({
       databaseId: appwriteConfig.databaseId,
       tableId: appwriteConfig.userCollectionId,
       rowId: ID.unique(),
@@ -94,15 +98,32 @@ export const createUser = async ({
         institution,
         number,
         isStudent,
-        points:0
-      }
-    
-    })
+        points: 0,
+      },
+    });
+
+    if (!createdUser) {
+      throw new Error("Failed to create user profile");
     }
-    else throw new Error('Failed to create user')
-    
-  } catch (e) {
-    throw new Error(e as string);
+
+    const userData: User = {
+  ...createdUser,
+
+  // required fields for your User interface
+  points: createdUser.points ?? 0,
+
+  // if Models.Document expects this
+  $collectionId: appwriteConfig.userCollectionId,
+};
+
+
+    setUser(userData);
+
+    setIsAuthenticated(true);
+
+    return createdUser;
+  } catch (e: any) {
+    throw new Error(e.message || "Something went wrong");
   }
 };
 
@@ -196,7 +217,7 @@ export const getCurrentUser = async () => {
 
 
 
-export const getMenuItems = async ({ isFavourite, query, vendors }: GetItemParams) => {
+export const getMenuItems = async ({ isFavourite, query, vendors, category }: GetItemParams) => {
   try {
     const queries = [];
 
@@ -204,12 +225,16 @@ export const getMenuItems = async ({ isFavourite, query, vendors }: GetItemParam
       Query.select([
         '*',
         'vendors.name',
-        'vendors.$id'
+        'vendors.$id',
+        'vendors.open',
+        'vendors.closes',
+        'vendors.rating',
       ])
     )
     if (vendors) queries.push(Query.equal('vendors', vendors));
-    if (isFavourite) queries.push(Query.equal("isFavourite", isFavourite));
+    if (isFavourite) queries.push(Query.equal("isFavourite", true));
     if (query) queries.push(Query.search("name", query));
+    if (category) queries.push(Query.contains("category", [category]));
 
     // change listdocuments
     const menus = await tablesDB.listRows(
@@ -226,6 +251,33 @@ export const getMenuItems = async ({ isFavourite, query, vendors }: GetItemParam
   }
 };
 
+
+export const  createMenuItem = async (
+  vendorId:string,
+  name:string,
+  price:number,
+  image:string
+
+) => {
+ try{
+    const res = await tablesDB.createRow({
+      databaseId:appwriteConfig.databaseId,
+      tableId:'vendors',
+      rowId:ID.unique(),
+      data:{
+        vendors: vendorId,
+        name:name,
+        price:price,
+        image:image
+      }
+    })
+    if (res) return true
+  }
+  catch(e){
+    // return false
+    throw new Error(e as string)
+  }
+}
 
 
 
@@ -260,6 +312,7 @@ catch(e:any){
 
 // can make this general function for updating where we set tableid, pass accountid and pass data
 // finish ts
+
 export const updateUser = async ({
   name,
   institution,
@@ -269,51 +322,71 @@ export const updateUser = async ({
   avatar,
   defaultAddress
 }: {
-  name:string | undefined,
-  institution:string | undefined,
-  number:string | undefined,
-  userId:string | undefined,
-  email:string | undefined,
-  avatar:string | undefined,
-  defaultAddress?:Address | undefined
+  name: string | undefined;
+  institution: string | undefined;
+  number: string | undefined;
+  userId: string | undefined;
+  email: string | undefined;
+  avatar: string | undefined;
+  defaultAddress?: Address | undefined;
 }) => {
   try {
+    const { setUser, user: currentUser } =
+      useAuthStore.getState();
 
-         const userRes = await tablesDB.listRows({
-        databaseId: appwriteConfig.databaseId,
-        tableId: appwriteConfig.userCollectionId,
-        queries: [Query.equal('$id', userId)]
+    // Fetch current DB user
+    const userRes = await tablesDB.listRows({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.userCollectionId,
+      queries: [Query.equal("$id", userId)],
+    });
+
+    const existingUser = userRes.rows[0];
+
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+
+    // Delete old avatar only if replacing it
+    if (
+      avatar &&
+      existingUser.avatar &&
+      avatar !== existingUser.avatar
+    ) {
+      await storage.deleteFile({
+        bucketId: appwriteConfig.bucketId,
+        fileId: existingUser.avatar,
       });
+    }
 
-      const user = userRes.rows[0];
+    // Update DB
+    const updatedUser = await tablesDB.updateRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.userCollectionId,
+      rowId: userId!,
+      data: {
+        name,
+        institution,
+        number,
+        email,
+        avatar,
+        defaultAddress,
+      },
+    });
 
-      if ( avatar && user.avatar && avatar !== user.avatar) {
-         await storage.deleteFile({bucketId: appwriteConfig.bucketId, fileId: user.avatar});
-      }
+    // Update Zustand → automatically updates AsyncStorage
+    setUser({
+      ...currentUser,
+      ...updatedUser,
+    });
 
-
-
-      await tablesDB.updateRow({
-        databaseId: appwriteConfig.databaseId,
-        tableId: "user",
-        rowId: userId,
-        data: {
-          name,
-          institution,
-          number,
-          email,
-          avatar,
-          defaultAddress
-        }
-        
-      });  
-    await refreshAuthStore();                   
-  return true;
+    return true;
 
   } catch (e: any) {
     throw new Error(e.message || "Failed to update user");
   }
 };
+
 
 
 export const getVendors = async ({ categories, query, }: GetVendorParams) => {
@@ -599,7 +672,7 @@ export const uploadImage = async (uri: string) => {
 };
 
 export const displayImage =  (imageId: string) => {
-  const imageUrl = storage.getFileViewURL(
+  const imageUrl = storage.getFilePreviewURL(
      appwriteConfig.bucketId,
     imageId,
    );
@@ -613,10 +686,23 @@ export const fetchOrders = async (accountId: string): Promise<Order[]> => {
     tableId: 'orders',
     queries: [
       Query.equal('customerId', accountId),
-      Query.equal('status', 'pending'),
       Query.orderDesc('$createdAt'),
     ],
   })
+    // if (!res) return false;
+
+  return res.rows.map((row: any) => ({
+    ...row,
+    items: JSON.parse(row.items),
+  }))
+}
+
+export const getAllOrders = async () => {
+  const res = await tablesDB.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: 'orders'
+  })
+  if (!res) return false
 
   return res.rows.map((row: any) => ({
     ...row,
@@ -632,18 +718,36 @@ export const deleteOrder = async (rowId: string) => {
   })
 }
 
-
+export async function acceptOrder(orderId: string, driverId: string | undefined) {
+ try{
+   const res = await tablesDB.updateRow(
+    {
+      databaseId: appwriteConfig.databaseId, 
+     tableId: 'orders',
+     rowId: orderId, 
+     data:{
+    status: 'accepted',
+    deliveryPersonId: driverId
+  }
+  
+  
+  });
+  if (!res) throw new Error('Failed to accept order')
+ }
+ catch(e){
+  console.error(e)
+ }
+}
 export const createOrder = async ({
   customerId,
   userAddress,
   totalAmount,
-  time,
-  items
+ 
+  items,
 }: {
   customerId: string | undefined;
   userAddress: string;
   totalAmount: number;
-  time: string;
   items: any[];
 }) => {
   try {
@@ -669,26 +773,36 @@ export const createOrder = async ({
 };
 
 
-export function subscribeToOrders() {
+
+export function subscribeToOrders(
+  onOrderUpdate: (order: any) => void,
+  currentUserId: string 
+) {
   console.log('Subscribing to order updates...');
 
   const unsubscribe = client.subscribe(
     `databases.${appwriteConfig.databaseId}.collections.orders.documents`,
     (response) => {
-      // response.events tells you what happened (create, update, delete)
-      console.log('something is happening...')
-      if (response.events.includes('databases.*.collections.*.documents.*.create')) {
-        console.log('Order created', response.payload);
-        // update state as needed
+      console.log('Realtime event:', response.events);
+
+
+      const isUpdated = response.events.some(event =>
+        event.includes('.update')
+      );
+
+      if (isUpdated) {
+        console.log('updated')
+        const updatedOrder ={
+          ...response.payload,
+          items: JSON.parse(response.payload.items)
+        };
+        if (updatedOrder?.customerId !== currentUserId) return; // add this guard
+        onOrderUpdate(updatedOrder);
       }
+
     }
   );
 
-
-
-  // Return cleanup function
-  return () => {
-    unsubscribe();
-  };
+  return unsubscribe;
 }
 

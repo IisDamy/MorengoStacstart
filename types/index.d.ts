@@ -29,14 +29,14 @@ export interface Address extends Models.Document{
 
 
 
-export interface Vendor extends Models.Document{
+export interface Vendor {
     name?:string;
     description?:string;
     coords?:number[];
     imageUrl?:string;
     rating?:number;
-    open?:number;
-    closes?:number;
+    open?:string;
+    closes?:string;
     category?:string;
     ownerId:string;
     verified?:boolean;
@@ -126,7 +126,8 @@ interface CustomInputProps {
     secureTextEntry?: boolean;
     keyboardType?: "default" | "email-address" | "numeric" | "phone-pad";
     autoFocus?:false,
-    style?:string
+    style?:string,
+    multiline:boolean
 }
 
 interface ProfileFieldProps {
@@ -152,7 +153,8 @@ interface SignInParams {
 interface GetItemParams {
     vendors?: string;
     query?: string;
-    isFavourite?: boolean;
+    isFavourite?: string;
+    category?: string;
 }
 
 interface GetVendorParams {
@@ -181,3 +183,21 @@ interface Order extends Models.Document {
   items: OrderItem[];
   time: string;
 }
+
+interface Location{
+    coords:number[],
+    label:string
+}
+
+interface CoordsStore{
+ location:Location,
+ locations: Location[] | [],
+ saveLocation: (loc: Location) => void;
+
+}
+
+interface NotificationViewerProps {
+  open: boolean,
+  onClose?: () => void;
+}
+

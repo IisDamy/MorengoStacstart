@@ -16,6 +16,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -33,8 +35,16 @@ export default Sentry.wrap(function RootLayout() {
   const [fontsLoaded, error] = useFonts({
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
     "Crispy": require("../assets/fonts/Crispy.otf"),
+    "Nunito": require("../assets/fonts/Nunito.ttf"),
+    "Nunito-semiBold": require("../assets/fonts/Nunito-SemiBold.ttf"),
+    "Nunito-bold": require("../assets/fonts/Nunito-Bold.ttf"),
+    "Nunito-regular": require("../assets/fonts/Nunito-Regular.ttf"),
+    "Nunito-light": require("../assets/fonts/Nunito-Light.ttf"),
+    "Nunito-medium": require("../assets/fonts/Nunito-Medium.ttf"),
+    "Nunito-extraBold": require("../assets/fonts/Nunito-ExtraBold.ttf"),
+
   });
-  const { isLoading, fetchAuthenticatedUser, user } = useAuthStore();
+  const { isLoading, fetchAuthenticatedUser, user, setIsAuthenticated } = useAuthStore();
 
   
 
@@ -44,7 +54,7 @@ export default Sentry.wrap(function RootLayout() {
   }, [fontsLoaded, error]);
 
   useEffect(() => {
-    fetchAuthenticatedUser();
+    if (!user) fetchAuthenticatedUser()
   }, []);
 
  
@@ -53,14 +63,14 @@ export default Sentry.wrap(function RootLayout() {
   // Notification tap listener
   useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      const { orderId } = response.notification.request.content.data;
-      if (orderId) console.log(orderId)
+      const { orderId, status } = response.notification.request.content.data;
+      if (orderId) router.push('/(tabs)/orders') // navigate to order details page
     });
 
     return () => subscription.remove(); // cleanup on unmount
-  }, []);
+  }, [user]);
 
-  if (isLoading && !fontsLoaded) return null;
+  if (isLoading || !fontsLoaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -14,7 +14,7 @@ const ProfileEdit = () => {
   const {user} = useAuthStore()
   const [focus, toggleFocus] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [image, setImage] = useState<string | null>(user?.avatar || null);
+  const [image, setImage] = useState<string | null>(null);
       const [form, setForm] = useState({
       name:user?.name,
       email:user?.email,
@@ -43,11 +43,10 @@ const ProfileEdit = () => {
       
     })
     await refreshAuthStore()
-    if(!result){
-      throw new Error('Update failed')
-    }
-    else{Alert.alert('Profile Updated')}
+    if(!result) throw new Error('Update failed')
 
+    else router.back()
+    
   }
   catch(e){
     console.error(e)
@@ -60,7 +59,7 @@ const ProfileEdit = () => {
         <Back />
         
         <TouchableOpacity onPress={handleSave}>
-            <Text className='font-bold text-xl p-1 text-pink-400'>Save</Text>
+            <Text className='font-bold text-xl p-1 text-blue-400 border'>Save</Text>
         </TouchableOpacity>
       </View>
   

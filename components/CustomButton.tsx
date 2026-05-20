@@ -24,7 +24,7 @@ const CustomButton = (
     >
         {isLoading? (
             <ActivityIndicator size={'small'} color={'white'}/>):(
-                <Text className='text-white font-bold tracking-wide' style={textStyle}>
+                <Text className='text-white font-[Nunito-bold] tracking-wide' style={textStyle}>
                     {title}
                 </Text>
         )}

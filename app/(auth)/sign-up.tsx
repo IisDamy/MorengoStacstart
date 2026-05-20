@@ -12,6 +12,8 @@ import CustomRadio from '@/components/CustomRadio'
 
 
 export default function SignUp() {
+
+
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [form, setForm] = useState({email:'', password:'', name:'', number:'', institution:'', isStudent:true});
     const [strengthScore, setStrengthScore] = useState(-1)
@@ -38,6 +40,7 @@ export default function SignUp() {
 
           try {
             await createUser({  email, password, name, institution, number,  isStudent})
+            // setUser({  email, name, institution, number,  isStudent})
             router.replace('/(tabs)');
         } catch(error: any) {
             Alert.alert('Error', error.message);
@@ -48,7 +51,7 @@ export default function SignUp() {
 
 
     return (
-      <View className='gap-10 bg-white pb-20 rounded-lg p-5 mt-5'>
+      <View className='gap-10 bg-white pb-20 rounded-lg p-5 '>
            <View className='absolute top-[-320]  w-screen '>
                     {/* obviously cha */}
                     <Text className='text-white text-3xl text-center'

@@ -266,7 +266,7 @@ const fetchVendors = async () => {
           onChangeText={handleSearch}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full py-5 border border-zinc-800 text-black p-4 bg-white opacity-[86%] rounded-full"
+          className="w-full py-5 border border-zinc-800 text-black p-4 bg-white opacity-[86%] font-[Nunito-regular] rounded-full"
         />
 
         {!isFocused && (
@@ -289,7 +289,9 @@ const fetchVendors = async () => {
                 className="p-4 border-b flex-row border-zinc-100"
               > {item.isVendor &&
                 <Image source={images.bag} tintColor={'red'}/>}
-                <Text numberOfLines={1}>{item.display_name}</Text>
+                <Text numberOfLines={1} className="font-[Nunito-regular]">
+                  {item.display_name}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>

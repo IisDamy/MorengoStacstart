@@ -1,15 +1,18 @@
 
 import { Alert, Image, TouchableOpacity } from 'react-native';
 import { View, Text } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { displayImage } from '@/lib/appwrite';
+import { router } from 'expo-router';
 
 const ImagePickerD = ({image, setImage}:{image:string | null, setImage:(image:string) => void}) => {
 
+
     const pickImage = async () => {
-  Alert.alert("Select Image", "Choose an option", [
+      try{
+        Alert.alert("Select Image", "Choose an option", [
     {
       text: "Camera",
       onPress: async () => {
@@ -44,6 +47,12 @@ const ImagePickerD = ({image, setImage}:{image:string | null, setImage:(image:st
     },
     { text: "Cancel", style: "cancel" },
   ]);
+      }
+  catch(e){
+    console.error(e)
+  }
+
+  
 };
 
 
@@ -55,16 +64,11 @@ const ImagePickerD = ({image, setImage}:{image:string | null, setImage:(image:st
 
   return (
   <TouchableOpacity onPress={pickImage}>
-  {image ? (
-    <Image
-      source={{ uri: displayImage(image).toString() }}
-      className='w-[100] h-[100] border rounded-full mb-12 my-2'
-    />
-  ) : (
+  
     <View className='w-[100] h-[100] rounded-full mb-12 my-2 bg-zinc-300 items-center justify-center'>
       <MaterialIcons name="camera-alt" size={28} color="gray" />
     </View>
-  )}
+ 
 </TouchableOpacity>
   )
 }

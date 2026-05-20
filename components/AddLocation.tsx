@@ -6,10 +6,10 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated'
-import { createAddress, getUserAddresses, updateUserAddress } from '@/lib/appwrite'
+import { createLocation, getUserLocationes, updateUserLocation } from '@/lib/appwrite'
 import useAuthStore from '@/store/auth.store'
-import { Address } from '@/types'
-
+import { Location } from '@/types'
+import { useCordsStore } from '@/store/coords.store'
 
 
 interface AddLocationProps {
@@ -21,85 +21,34 @@ interface AddLocationProps {
 
 const AddLocation = ({ isOpened, coords }: AddLocationProps) => {
 
-  const { user } = useAuthStore()
+  const {saveLocation} = useCordsStore()
   const [isLoading, setIsLoading] = useState(false)
-  const [existingAddresses, setExistingAddresses] = useState<Address[] | null>(null)
-  const [newAddress, setNewAddress] = useState({ name: 'Home', coords: coords, isDefault: false })
+  const [newLocation, setNewLocation] = useState({ label: 'Home', coords: coords })
 
   const inputRef = useRef(null)
   const scale = useSharedValue(0.5)
   const opacity = useSharedValue(0)
 
 
-  // Fetch the existing address row for this user on mount
-  useEffect(() => {
-    const fetchAddress = async () => {
-      try {
-        const addresses = await getUserAddresses(user?.accountId || '');
-        setExistingAddresses(addresses)
-      } catch (e: any) {
-        console.error('Failed to fetch address:', e.message)
-      }
-    }
-    fetchAddress()
-  }, [])
+  // Fetch the existing Location row for this user on mount
 
 
-const saveUserLocation = async () => {
-  try {
-    if (!existingAddresses) {
-      await createAddress({
-        name: newAddress.name,
-        coords,
-        isDefault: newAddress.isDefault,
-      });
-      Alert.alert('Address successfully saved');
-      return;
-    }
-
-    const match = existingAddresses.find(
-      address =>
-        (address.coords[0] === coords[0] &&
-         address.coords[1] === coords[1]) ||
-        address.name === newAddress.name
-    );
-
-    if (match) {
-      await updateUserAddress({
-        address: {
-          ...match,
-          ...newAddress,
-          coords,
-        },
-      });
-    } else {
-      await createAddress({
-        name: newAddress.name,
-        coords,
-        isDefault: newAddress.isDefault,
-      });
-    }
-
-    Alert.alert('Address successfully saved');
-  } catch (e: any) {
-    console.error('saveUserLocation error:', e.message);
-    Alert.alert('Error', e.message || 'Failed to save address');
-  }
-};
 
 
 
 
   const handleAddLocation = async () => {
     setIsLoading(true)
-    try {
-        await saveUserLocation()
-     
-    } catch (e: any) {
-      console.error('handleAddLocation error:', e.message)
-    } finally {
+    try{     
+    saveLocation(newLocation)
+    }
+    catch(e){
+
+    }
+    finally{
       setIsLoading(false)
     }
+    
   }
 
 
@@ -135,15 +84,15 @@ const saveUserLocation = async () => {
     >
       <TextInput
         ref={inputRef}
-        className="bg-zinc-200 border-zinc-400 p-2 text-sm rounded-[5] py-2 border"
-        value={newAddress.name}
+        className="bg-zinc-200 font-[Nunito-regular] border-zinc-400 p-2 text-sm rounded-[5] py-2 border"
+        value={newLocation.label}
         maxLength={20}
-        onChangeText={(text) => setNewAddress(prev => ({ ...prev, name: text }))}
+        onChangeText={(text) => setNewLocation(prev => ({ ...prev, label: text }))}
       />
 
       <TouchableOpacity onPress={handleAddLocation} disabled={isLoading}>
         <Text
-          className="p-2 rounded-[10] text-center font-bold text-white"
+          className="p-2 rounded-[10] text-center font-[Nunito-bold] text-white"
           style={{ backgroundColor: isLoading ? '#aaa' : color.moregreen }}
         >
           {isLoading ? 'Saving...' : 'Save'}

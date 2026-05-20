@@ -21,7 +21,8 @@
         "permissions": ["ACCESS_FINE_LOCATION"],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.Morengo.DeliverU"
+      "package": "com.Morengo.DeliverU",
+      "googleServicesFile": "./google-services.json"
 
     },
     "web": {

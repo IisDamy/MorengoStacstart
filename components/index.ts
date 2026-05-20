@@ -9,7 +9,7 @@ import TabsHeader from "./TabsHeader";
 import CustomDropdown from "./CustomDropdown";
 import ToggleButton from "./ToggleButton";
 import LocationChangeButton from "./LocationChangeButton";
-import PointsIcon from "./PointsIcon";
+import PointsIcon from "./PointsCounter";
 import LocationSideButton from "./LocationSideButtons";
 import PopupWrapper from "./PopUpWrapper";
 import CreateVendorLocation from "./CreateVendorLocation";

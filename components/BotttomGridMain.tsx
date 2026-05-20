@@ -1,145 +1,539 @@
-import { images } from "@/constants";
-import React from "react";
-import { View, Text, Pressable, Image, ImageBackground, StyleSheet, TouchableOpacity,  } from "react-native";
+import { images, color } from "@/constants";
+import React, { useRef, useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  ImageBackground,
+  StyleSheet,
+} from "react-native";
+
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay
+  withRepeat,
+  withSequence,
+  FadeIn,
+  FadeOut,
+  ZoomIn,
+  SlideInDown,
 } from "react-native-reanimated";
-import { color } from "@/constants";
+
+import CustomOrderPop from "./CustomOrderPop";
+import { router } from "expo-router";
+
 const SMALL = 60;
 const LARGE = 250;
 const DEFAULT = 160;
+
 const RADIUS = 15;
 const FULL_RADIUS = 999;
 
 export default function GridAnim() {
   const active = useSharedValue<null | number>(null);
 
-  const createStyle = (index: number) =>
+  const holdTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const [showDetails, setShowDetails] =
+    useState<number | null>(null);
+
+  const [openCustomOrder, toggleOpenCustomOrder] =
+    useState(false);
+
+  // Arrow floating animation
+  const arrowFloat = useSharedValue(0);
+
+  useEffect(() => {
+    arrowFloat.value = withRepeat(
+      withSequence(
+        withTiming(-5, {
+          duration: 650,
+        }),
+        withTiming(0, {
+          duration: 650,
+        })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const arrowStyle =
     useAnimatedStyle(() => {
-      if (active.value === null) {
+      return {
+        transform: [
+          {
+            translateY:
+              arrowFloat.value,
+          },
+          {
+            rotate: `${
+              Math.sin(
+                arrowFloat.value *
+                  0.08
+              ) * 5
+            }deg`,
+          },
+        ],
+      };
+    });
+
+  const handlePressIn = (
+    index: number
+  ) => {
+    holdTimeout.current =
+      setTimeout(() => {
+        active.value = index;
+
+        setTimeout(() => {
+          setShowDetails(index);
+        }, 250);
+      }, 250);
+  };
+
+  const handlePressOut = () => {
+    if (holdTimeout.current) {
+      clearTimeout(
+        holdTimeout.current
+      );
+    }
+
+    active.value = null;
+    setShowDetails(null);
+  };
+
+  const createStyle = (
+    index: number
+  ) =>
+    useAnimatedStyle(() => {
+      if (
+        active.value === null
+      ) {
         return {
-          width:  withTiming(DEFAULT),
-          height: withTiming(DEFAULT),
-          borderRadius: withTiming(RADIUS),
+          width: withTiming(
+            DEFAULT
+          ),
+          height: withTiming(
+            DEFAULT
+          ),
+          borderRadius:
+            withTiming(RADIUS),
         };
       }
 
-      const isTop = index === 1 || index === 2;
-      const isLeft = index === 1 || index === 3;
+      const isTop =
+        index === 1 ||
+        index === 2;
 
-      const activeTop = active.value === 1 || active.value === 2;
-      const activeLeft = active.value === 1 || active.value === 3;
+      const isLeft =
+        index === 1 ||
+        index === 3;
+
+      const activeTop =
+        active.value === 1 ||
+        active.value === 2;
+
+      const activeLeft =
+        active.value === 1 ||
+        active.value === 3;
 
       const sameRow =
-        (isTop && activeTop) || (!isTop && !activeTop);
+        (isTop &&
+          activeTop) ||
+        (!isTop &&
+          !activeTop);
 
       const sameCol =
-        (isLeft && activeLeft) || (!isLeft && !activeLeft);
+        (isLeft &&
+          activeLeft) ||
+        (!isLeft &&
+          !activeLeft);
 
       let width = SMALL;
       let height = SMALL;
 
-      if (sameRow) height = LARGE;
-      if (sameCol) width = LARGE;
+      if (sameRow)
+        height = LARGE;
 
-      // determine if this box is the active one
-      const isActive = active.value === index;
+      if (sameCol)
+        width = LARGE;
 
-      // if box is reduced in any dimension → make it fully rounded
-      const isReduced = width === SMALL || height === SMALL;
+      const isActive =
+        active.value === index;
+
+      const isReduced =
+        width === SMALL ||
+        height === SMALL;
 
       return {
-        width: withDelay(300,withTiming(width, { duration: 150 })),
-        height: withDelay(300,withTiming(height, { duration: 150 })),
-        borderRadius: withDelay(500,withTiming(
-          isActive ? RADIUS : isReduced ? FULL_RADIUS : RADIUS,
-          { duration: 100 })
+        width: withTiming(
+          width,
+          {
+            duration: 220,
+          }
         ),
+
+        height:
+          withTiming(
+            height,
+            {
+              duration: 220,
+            }
+          ),
+
+        borderRadius:
+          withTiming(
+            isActive
+              ? RADIUS
+              : isReduced
+              ? FULL_RADIUS
+              : RADIUS,
+            {
+              duration: 280,
+            }
+          ),
       };
     });
 
-  const box1 = createStyle(1);
-  const box2 = createStyle(2);
-  const box3 = createStyle(3);
-  const box4 = createStyle(4);
-// image3 too sharp, replace latter
+  const box1 =
+    createStyle(1);
+  const box2 =
+    createStyle(2);
+  const box3 =
+    createStyle(3);
+  const box4 =
+    createStyle(4);
+
+  const renderDescription = (
+    text: string,
+    boxNumber: number,
+    bubbleColor: string
+  ) => {
+    if (
+      showDetails !==
+      boxNumber
+    )
+      return null;
+
+    return (
+      <>
+        {/* bubble */}
+        <Animated.View
+          entering={ZoomIn.springify()
+            .damping(20)
+            .stiffness(110)}
+          exiting={FadeOut.duration(
+            150
+          )}
+          style={[
+            styles.descriptionBubble,
+            {
+              backgroundColor:
+                bubbleColor,
+            },
+          ]}
+        >
+          {/* text */}
+          <Animated.Text
+            entering={SlideInDown.springify()
+              .damping(18)
+              .stiffness(90)}
+            style={
+              styles.descriptionText
+            }
+          >
+            {text}
+          </Animated.Text>
+        </Animated.View>
+
+        {/* arrow */}
+        <Animated.Image
+          source={
+            images.cartoonArrow
+          }
+          resizeMode="contain"
+          entering={FadeIn.duration(
+            250
+          )}
+          exiting={FadeOut.duration(
+            120
+          )}
+          style={[
+            styles.arrow,
+            arrowStyle,
+          ]}
+        />
+      </>
+    );
+  };
 
   return (
-    <View className=" gap-2">
+    <View className="gap-2">
+      {/* TOP */}
       <View className="flex-row gap-2">
-        
+        {/* BOX 1 */}
         <Pressable
-          onPressIn={() => (active.value = 1)}
-          onPressOut={() => (active.value = null)}>
-          <Animated.View style={box1} className={'overflow-hidden '}>  
-            <ImageBackground className="w-[300] absolute h-[300]" source={images.customdelivery}/>
-            <Text className="z-2 text-center w-[100] mx-auto my-auto text-white "
-             style={styles.textPop}>
-             make a CUSTOM ORDER
-             </Text>
-          </Animated.View>
-        </Pressable>
-        
-
-
-        <Pressable
-          onPressIn={() => (active.value = 2)}
-          onPressOut={() => (active.value = null)}>
-          <Animated.View style={box2} className="overflow-hidden " >
-            <ImageBackground  className="w-[300] right-0 absolute h-[300]" source={images.businesslady}/>
-            <Text className="z-2 text-center w-[100] my-auto mx-auto text-white "
-             style={styles.textPop}>
-              Create a vendor
-             </Text>
-          </Animated.View>
-        </Pressable>
-      </View>
-
-      <View className="flex-row gap-2">
-        <Pressable
-          onPressIn={() => (active.value = 3)}
-          onPressOut={() => (active.value = null)}>
-          <Animated.View style={box3} className="bg-zinc-200 overflow-hidden" >
-            <ImageBackground className="w-[300] left-0 absolute bottom-[0] h-[300]" source={images.womaneatschicken}/>
-            <Text className="z-2 text-center w-[100] mx-auto my-auto text-white "
-             style={styles.textPop}>
-              become a rider
-             </Text>
-          </Animated.View>
-        </Pressable>
-
-        <Pressable
-          onPressIn={() => (active.value = 4)}
-          onPressOut={() => (active.value = null)}
+          onPress={() =>
+            toggleOpenCustomOrder(
+              true
+            )
+          }
+          onPressIn={() =>
+            handlePressIn(1)
+          }
+          onPressOut={
+            handlePressOut
+          }
         >
-          <Animated.View style={box4} className="bg-zinc-200 overflow-hidden" >
-            <ImageBackground className="w-[300] right-0 absolute bottom-[0] h-[300]" source={images.womaneatschicken}/>
-            <Text className="z-2 text-center w-[100] mx-auto my-auto text-white "
-             style={styles.textPop}>
-              CUSTOM ORDER
-             </Text>
+          <Animated.View
+            style={box1}
+            className="overflow-hidden"
+          >
+            <ImageBackground
+              source={
+                images.customdelivery
+              }
+              className="w-[300] absolute h-[300]"
+            />
+
+            <Text
+              style={
+                styles.titleText
+              }
+              className="z-2 text-center w-[100] mx-auto my-auto"
+            >
+              make a CUSTOM ORDER
+            </Text>
+
+            {renderDescription(
+              "Order items not currently available in our stores.",
+              1,
+              "rgba(255,105,180,0.75)"
+            )}
+          </Animated.View>
+        </Pressable>
+
+        {/* BOX 2 */}
+        <Pressable
+          onPress={() =>
+            console.log(
+              "clicked box 2"
+            )
+          }
+          onPressIn={() =>
+            handlePressIn(2)
+          }
+          onPressOut={
+            handlePressOut
+          }
+        >
+          <Animated.View
+            style={box2}
+            className="overflow-hidden"
+          >
+            <ImageBackground
+              source={
+                images.businesslady
+              }
+              className="w-[300] absolute h-[300]"
+            />
+
+            <Text
+              style={
+                styles.titleText
+              }
+              className="z-2 text-center w-[100] mx-auto my-auto"
+            >
+              Laundry, gas and
+              more..
+            </Text>
+
+            {renderDescription(
+              "Manage multiple service stores with ease.",
+              2,
+              "rgba(255,215,0,0.75)"
+            )}
           </Animated.View>
         </Pressable>
       </View>
+
+      {/* BOTTOM */}
+      <View className="flex-row gap-2">
+        {/* BOX 3 */}
+        <Pressable
+          onPress={() =>
+            router.push(
+              "/(screens)/CreateStore"
+            )
+          }
+          onPressIn={() =>
+            handlePressIn(3)
+          }
+          onPressOut={
+            handlePressOut
+          }
+        >
+          <Animated.View
+            style={box3}
+            className="overflow-hidden"
+          >
+            <ImageBackground
+              source={
+                images.womaneatschicken
+              }
+              className="w-[300] absolute h-[300]"
+            />
+
+            <Text
+              style={
+                styles.titleText
+              }
+              className="z-2 text-center w-[100] mx-auto my-auto"
+            >
+              create a vendor
+              store
+            </Text>
+
+            {renderDescription(
+              "Launch and manage your own store.",
+              3,
+              "rgba(0,255,200,0.75)"
+            )}
+          </Animated.View>
+        </Pressable>
+
+        {/* BOX 4 */}
+        <Pressable
+          onPress={() =>
+            console.log(
+              "clicked box 4"
+            )
+          }
+          onPressIn={() =>
+            handlePressIn(4)
+          }
+          onPressOut={
+            handlePressOut
+          }
+        >
+          <Animated.View
+            style={box4}
+            className="overflow-hidden"
+          >
+            <ImageBackground
+              source={
+                images.womaneatschicken
+              }
+              className="w-[300] absolute h-[300]"
+            />
+
+            <Text
+              style={
+                styles.titleText
+              }
+              className="z-2 text-center w-[100] mx-auto my-auto"
+            >
+              become a rider
+            </Text>
+
+            {renderDescription(
+              "Deliver packages and earn per trip.",
+              4,
+              "rgba(255,140,0,0.75)"
+            )}
+          </Animated.View>
+        </Pressable>
+      </View>
+
+      <CustomOrderPop
+        visible={
+          openCustomOrder
+        }
+        onClose={() =>
+          toggleOpenCustomOrder(
+            false
+          )
+        }
+      />
     </View>
   );
 }
 
+const styles =
+  StyleSheet.create({
+    titleText: {
+      fontSize: 14,
+      fontFamily:
+        "Crispy",
+      lineHeight: 20,
+      color:
+        color.morange,
 
+      textShadowColor:
+        "#000",
 
+      textShadowOffset: {
+        width: -0.5,
+        height: 0.5,
+      },
 
-const styles = StyleSheet.create({
-  textPop: {
-    fontSize: 16,
-    fontFamily: "Crispy",
-    lineHeight: 20,
-    color: color.morange, // Replace with your actual morange color value
-    letterSpacing: 0,
-    textShadowColor: "#0e0e11", // zinc color
-    textShadowOffset: { width: -0.5, height: 0.5 },
-    textShadowRadius: 0.6,
-  },
-});
+      textShadowRadius: 1,
+    },
+
+    descriptionBubble:
+      {
+        position:
+          "absolute",
+
+        bottom: 8,
+        alignSelf:
+          "center",
+
+        width: "85%",
+
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+
+        borderRadius: 12,
+
+        borderWidth: 1,
+        borderColor:
+          "rgba(255,255,255,0.25)",
+      },
+
+    descriptionText:
+      {
+        fontSize: 11,
+
+        lineHeight: 14,
+
+        fontFamily:
+          "Crispy",
+
+        textAlign:
+          "center",
+
+        color: "#fff",
+
+        textShadowColor:
+          "#000",
+
+        textShadowOffset:
+          {
+            width: 0,
+            height: 1,
+          },
+
+        textShadowRadius: 2,
+      },
+
+    arrow: {
+      position:
+        "absolute",
+      height: 50,
+      width: 50,
+      right: 5,
+      top: "40%",
+    },
+  });

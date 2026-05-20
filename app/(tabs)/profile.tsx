@@ -1,4 +1,4 @@
-import { View, Text,FlatList, Pressable, TouchableOpacity, Image } from 'react-native'
+import { View, Text,FlatList, Pressable, TouchableOpacity, Image, Alert } from 'react-native'
 import React,{useEffect, useState} from 'react'
 import { color } from '@/constants'
 import { NotificationBell, TabsHeader, ToggleButton } from '@/components'
@@ -32,10 +32,7 @@ const Profile = () => {
 
   const image = displayImage(user?.avatar).toString()
 
-  useEffect(() => {
-    const image = displayImage(user?.avatar)
-    console.log(image, 'pppppp')
-  },[enableNotifs])
+
 
 
   return (
@@ -52,17 +49,18 @@ const Profile = () => {
           <Image source={{uri:image}} alt='nope' className='w-32 h-24 mt-6 mb-6 border rounded-full'/>
       <View className=' w-full px-10 flex-row justify-between mb-6 flex items-center'>
         <View className='flex items-center'>
-          <View className='rounded-full w-10 h-10 bg-black border'></View>
-          <Text className='text-sm mt-2'>History</Text>
+          <View className='rounded-full w-12 h-12 bg-black border'></View>
+          <Text className='text-xs font-[Nunito-regular] mt-2'>History</Text>
         </View>
          <View className='flex items-center'>
-          <View className='rounded-full w-10 h-10 bg-black border'></View>
-          <Text className='text-sm mt-2'>Address</Text>
+          <View className='rounded-full w-12 h-14 bg-black border'></View>
+          <Text className='text-xs font-[Nunito-regular] mt-2 w-[50] text-center'>Check points</Text>
         </View>
-        <View className='flex items-center'>
-          <View className='rounded-full w-10 h-10 border bg-black'></View>
-          <Text className='text-sm mt-2'>My Points</Text>
-        </View>
+
+        <TouchableOpacity className='flex items-center' onPress={()=> user?.role === 'Customer'? Alert.alert('You need to create a vendor inorder to access dashboard') : router.push('/Dashboard')}>
+          <View className='rounded-full w-12 h-12 border bg-black'></View>
+          <Text className='text-xs font-[Nunito-regular] mt-2 w-[50] text-center'>Open dashboard</Text>
+        </TouchableOpacity>
         
 
       </View>
@@ -70,19 +68,19 @@ const Profile = () => {
       {/*maybe use flatlist for this, i thoink flatlist allows you to add headers */}
       <View className=' bg-white rounded-[10] h-fit p-6 w-full gap-12'>
         <View className=''>
-          <Text className='font-bold text-xl mb-2 tracking-wider'
+          <Text className='font-[Nunito-bold] text-xl mb-2'
             style={{color:color.moregreen}}
           >My account</Text>
        <TouchableOpacity onPress={()=>router.push('/(screens)/ProfileEdit')}>
            <View className='flex-row justify-between border-b py-5 border-zinc-300'>
-        <Text className=''>Manage Profile</Text>
+        <Text className='font-[Nunito-regular]'>Manage Profile</Text>
         <MaterialIcons name='keyboard-arrow-right' size={20} color={'#C2C2CB'}/>
        </View>
        </TouchableOpacity>
 
        <TouchableOpacity>
           <View className='flex-row justify-between border-b py-5 border-zinc-300'>
-          <Text>Payment</Text>
+          <Text className='font-[Nunito-regular]'>Payment</Text>
           <MaterialIcons name='keyboard-arrow-right' size={20} color={'#C2C2CB'}/>
        </View>
        </TouchableOpacity>
@@ -92,21 +90,21 @@ const Profile = () => {
 
 
         <View className=''>
-             <Text className='text-xl font-bold mb-2 tracking-wider'
+             <Text className='text-xl font-[Nunito-bold] mb-2 '
               style={{color:color.moregreen}}
              >Notifications
              </Text>
 
         <Pressable onPress={toggleSwitchNotifs}>
           <View className='border-b py-5 justify-between items-center flex-row border-zinc-300'>
-          <Text>Notification</Text>
+          <Text className='font-[Nunito-regular]'>Notification</Text>
           <ToggleButton isEnabled={enableNotifs} toggleSwitch={toggleSwitchNotifs}/>
        </View>
         </Pressable>   
        
        <Pressable onPress={toggleSwitchPromo}>
         <View className='border-b py-5 justify-between items-center flex-row border-zinc-300'>
-        <Text>Promotional Notification</Text>
+        <Text className='font-[Nunito-regular]'>Promotional Notification</Text>
         <ToggleButton isEnabled={enablePromoNotifs} toggleSwitch={toggleSwitchPromo}/>
         </View>
        </Pressable>
@@ -115,23 +113,25 @@ const Profile = () => {
 
 
         <View className=''>
-             <Text className='text-xl font-bold mb-2 tracking-wider'
+             <Text className='text-xl font-[Nunito-bold] mb-2'
               style={{color:color.moregreen}}
              >More
              </Text>
         <TouchableOpacity>
           <View className='border-b flex-row justify-between py-5 border-zinc-300'>
-            <Text>Contact us</Text>
+            <Text className='font-[Nunito-regular]'>Contact us</Text>
             <MaterialIcons name='keyboard-arrow-right' size={20} color={'#C2C2CB'}/>
           </View>
         </TouchableOpacity>
        
        <TouchableOpacity>
         <View className='border-b flex-row justify-between py-5 border-zinc-300'>
-          <Text>Share morengo</Text>
+          <Text className='font-[Nunito-regular]'>Share morengo</Text>
           <MaterialIcons name='keyboard-arrow-right' size={20} color={'#C2C2CB'}/>
       </View>
        </TouchableOpacity>
+
+
    
         </View>
       {/* logout */}

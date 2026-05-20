@@ -27,7 +27,7 @@ const CreateVendorLocation = ({ coords, isOpened }: CreateVendorLocationProps) =
       try {
         const adminId = await getAdminId();
         if (!adminId)  throw new Error('Admin user not found. Cannot create vendor without an owner.');
-        const result = await createVendor({...newVendor,open: Number(newVendor.open), closes: Number(newVendor.closes), ownerId: adminId});
+        const result = await createVendor({...newVendor, ownerId: adminId});
         if (result) Alert.alert('Vendor created successfully!')
       } catch (e) {
         console.error(e);
