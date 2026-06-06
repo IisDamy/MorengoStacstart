@@ -47,13 +47,17 @@ export interface User extends Models.Document {
     name?: string | undefined;
     email?: string | undefined;
     avatar?: string | undefined;
-    role?: 'Admin' | 'DeliveryPerson' | 'Customer' | 'Vendor' | 'Vendor+';
-    number?:string | undefined;
+    role?: 'admin' | 'rider' | 'customer' | 'vendor' ;
+    phone?:string | undefined;
     institution?:string;
     PhotoUrl?:string;
     points:number;
     accountId?:string;
     isStudent?:boolean;
+    pushToken?:string;
+    status?:string;
+    paystackCustomerCode?:string;
+    phoneVerified?:boolean;
 }
 
 
@@ -141,7 +145,7 @@ interface CreateUserParams {
     password: string;
     name: string;
     institution:string;
-    number:string;
+    phone:string;
     isStudent:boolean;
 }
 
@@ -186,7 +190,8 @@ interface Order extends Models.Document {
 
 interface Location{
     coords:number[],
-    label:string
+    label:string,
+    isCurrent:boolean
 }
 
 interface CoordsStore{
@@ -201,3 +206,10 @@ interface NotificationViewerProps {
   onClose?: () => void;
 }
 
+interface MenuItemDraft {
+  id: string
+  name: string
+  price: string
+  imageUri: string | null
+  imageId: string | null
+}

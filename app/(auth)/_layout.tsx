@@ -28,7 +28,7 @@ const AuthLayout = () => {
   // }, []);
 
 
-  if (user?.role !== 'Customer' && isAuthenticated) return <Redirect href='/(screens)/Dashboard' />
+  if (user?.role !== 'customer' && isAuthenticated) return <Redirect href='/(screens)/Dashboard' />
   if(isAuthenticated && !isLoading) return <Redirect href='/(tabs)' />
   
   return (

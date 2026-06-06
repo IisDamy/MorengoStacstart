@@ -13,6 +13,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
   ImageBackground,
 } from "react-native";
 import Animated from "react-native-reanimated";
@@ -30,6 +31,8 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuthStore();
   const [openNotifications, toggleOpenNotifictions] = useState(false);
+
+
 
   return (
     <SafeAreaView
@@ -55,6 +58,10 @@ export default function Index() {
           rounded-[130%]"
           style={{
             marginTop: -160,
+            shadowColor: "#1a1a1a",
+              shadowOffset: { width: 0, height: -3 },
+              elevation: 2,
+              shadowOpacity: 0.25,
           }}
         >
           {/* gradient */}
@@ -65,59 +72,19 @@ export default function Index() {
 
           {/* background images */}
           <View className="items-center flex absolute bottom-0 h-[200] w-screen">
-            <ImageBackground
-              source={images.milkshake}
-              tintColor="white"
-              resizeMode="cover"
-              className="w-[300] h-[300] rotate-[-30deg] absolute"
-            />
+          
 
-            <ImageBackground
-              source={images.fruit}
-              tintColor="white"
-              resizeMode="cover"
-              className="w-[80] h-[80] absolute top-[10]"
-            />
-
-            <ImageBackground
-              source={images.sodaCup}
-              tintColor="white"
-              resizeMode="cover"
-              className="w-[300] h-[300] rotate-[30deg] absolute"
-            />
-
-            <ImageBackground
-              source={images.plate}
-              tintColor="white"
-              resizeMode="cover"
-              className="w-[150] h-[150]
-              rotate-[90deg] absolute
-              top-10 left-[75]"
-            />
-
-            <ImageBackground
-              source={images.vine2}
-              tintColor="white"
-              resizeMode="cover"
-              className="w-[150] h-[150]
-              absolute top-[-50]
-              left-[200]"
-              style={{
-                transform: [
-                  { rotateY: "180deg" },
-                  { rotateZ: "60deg" },
-                ],
-              }}
-            />
-
-            <ImageBackground
-              source={images.vine2}
-              tintColor="white"
-              resizeMode="cover"
-              className="w-[150] h-[150]
-              absolute top-[-50]
-              right-[200]"
-            />
+            <Image
+              source={images.allsorts}
+              tintColor="#1f2937bf"
+        
+              
+              resizeMode="repeat"
+              className="w-full  h-full 
+              absolute 
+              "/>
+           
+       
           </View>
 
           {/* header content */}
@@ -165,7 +132,7 @@ export default function Index() {
             <TextInput
               className="relative
               top-[12]
-           
+              text-zinc-500
               bg-white px-3 
               py-0
               text-sm

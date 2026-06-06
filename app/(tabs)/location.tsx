@@ -1,173 +1,181 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { CreateVendorLocation, LocationSideButton } from "@/components";
+import AddLocation from "@/components/AddLocation";
+import { color, images } from "@/constants";
+import { getVendors } from "@/lib/appwrite";
+import useAuthStore from "@/store/auth.store";
+import { useCordsStore } from "@/store/coords.store";
+import { MaterialIcons } from "@expo/vector-icons";
 import {
-  View,
-  Text,
-  TextInput,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from 'react-native'
-import {
+  Camera,
   MapView,
   MarkerView,
   setAccessToken,
-  Camera,
-  PointAnnotation
-} from '@maplibre/maplibre-react-native'
-import Ionicons from '@expo/vector-icons/Ionicons'
-import * as Location from 'expo-location'
-import { color, images } from '@/constants'
-import useAuthStore from '@/store/auth.store'
-import AddLocation from '@/components/AddLocation'
-import { CreateVendorLocation, LocationSideButton } from '@/components'
-import { getVendors } from '@/lib/appwrite'
+} from "@maplibre/maplibre-react-native";
+import * as Location from "expo-location";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-setAccessToken(null)
+setAccessToken(null);
 
+// change image of store
 const OSM_STYLE = {
   version: 8,
   sources: {
-    'osm-tiles': {
-      type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+    "osm-tiles": {
+      type: "raster",
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
       tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
+      attribution: "© OpenStreetMap contributors",
     },
   },
   layers: [
     {
-      id: 'osm-tiles-layer',
-      type: 'raster',
-      source: 'osm-tiles',
+      id: "osm-tiles-layer",
+      type: "raster",
+      source: "osm-tiles",
       minzoom: 0,
       maxzoom: 19,
     },
   ],
-}
+};
 
-const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org'
+const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 
 const location = () => {
-  const { user } = useAuthStore()
-  const cameraRef = useRef(null)
+  const { user } = useAuthStore();
+  const cameraRef = useRef(null);
+  const { locations, location } = useCordsStore();
+  const [mapCoords, setMapCoords] = useState([4.55, 8.5]);
+  const [searchText, setSearchText] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaveUserOpened, setIsSaveUserOpened] = useState(false);
+  const [isSaveVendorOpened, setIsSaveVendorOpened] = useState(false);
+  const [vendors, setVendors] = useState<any[]>([]);
 
-  const [mapCoords, setMapCoords] = useState([ 4.5500, 8.5000])
-  const [searchText, setSearchText] = useState('')
-  const [isFocused, setIsFocused] = useState(false)
-  const [suggestions, setSuggestions] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSaveUserOpened, setIsSaveUserOpened] = useState(false)
-  const [isSaveVendorOpened, setIsSaveVendorOpened] = useState(false)
-  const [vendors, setVendors] = useState<any[]>([])
+  const searchTimeout = useRef(null);
+const currentLoc = locations.find((loc) => loc.isCurrent);
 
-  const searchTimeout = useRef(null)
 
   useEffect(() => {
-  
-    initializeLocation()
-    fetchVendors()
+    initializeLocation();
+    fetchVendors();
 
     return () => {
-      if (searchTimeout.current) clearTimeout(searchTimeout.current)
-    }
-  }, [])
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    };
+  }, [currentLoc]);
 
-  /* =========================
+  /* 
      INITIAL ROUTING LOGIC
-  ========================== */
+  */
   const initializeLocation = async () => {
-    setIsLoading(true)
-
+    setIsLoading(true);
+    
     try {
-      if (!user?.institution) {
-        await goToUserLocation()
-        return
+      if (currentLoc) {
+        console.log(currentLoc);
+        setMapCoords(currentLoc.coords);
+        return;
+      } 
+
+      if (!user?.institution || !currentLoc) {
+        await goToUserLocation();
+        return;
       }
 
-
-      const url =
+   
+            const url =
         `${NOMINATIM_BASE}/search` +
         `?q=${encodeURIComponent(user.institution)}` +
         `&format=json` +
         `&limit=1` +
-        `&countrycodes=ng`
+        `&countrycodes=ng`;
 
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'Morengo/1.0 (contact@myapp.com)',
-          'Accept-Language': 'en',
+          "User-Agent": "Morengo/1.0 (contact@myapp.com)",
+          "Accept-Language": "en",
         },
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (Array.isArray(data) && data.length > 0) {
-        const coords = [parseFloat(data[0].lon), parseFloat(data[0].lat)]
-        setMapCoords(coords)
+        const coords = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+        setMapCoords(coords);
       } else {
-        console.warn('Institution not found on Nominatim, falling back to GPS')
-        await goToUserLocation()
-      }
-    } catch (error) {
-      console.error('Institution location error:', error)
-      await goToUserLocation()
+        console.warn("Institution not found on Nominatim, falling back to GPS");
+        // await goToUserLocation();
+      
+     
+        }
+    }
+    catch (error) {
+      console.error("Institution location error:", error);
+      await goToUserLocation();
     } finally {
-      setIsLoading(false)
-    }
-  }
+      setIsLoading(false);
+      }
+  };
 
+  const fetchVendors = async () => {
+    try {
+      const vendorsRes = await getVendors({});
+      if (!vendorsRes) {
+        throw new Error("No vendors found");
+      }
 
-const fetchVendors = async () => { 
-  try {
-    const vendorsRes = await getVendors({})
-    if(!vendorsRes){
-      throw new Error('No vendors found')
+      setVendors(vendorsRes);
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
     }
-    
-    setVendors(vendorsRes)
-  }
-  catch (error) {
-    console.error('Error fetching vendors:', error)
-  }
-}
-    
-  /* =========================
+  };
+
+  /* 
      USER GPS LOCATION
-  ========================== */
+ */
   const goToUserLocation = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const { status } = await Location.getForegroundPermissionsAsync()
+      const { status } = await Location.getForegroundPermissionsAsync();
 
-      if (status !== 'granted') {
+      if (status !== "granted") {
         const { status: newStatus } =
-          await Location.requestForegroundPermissionsAsync()
+          await Location.requestForegroundPermissionsAsync();
 
-        if (newStatus !== 'granted') {
-          console.error('Permission denied')
-          return
+        if (newStatus !== "granted") {
+          console.error("Permission denied");
+          return;
         }
       }
 
-      const currentLocation = await Location.getCurrentPositionAsync({})
+      const currentLocation = await Location.getCurrentPositionAsync({});
       const coords = [
         currentLocation.coords.longitude,
         currentLocation.coords.latitude,
-      ]
+      ];
 
-      setMapCoords(coords)
+      setMapCoords(coords);
     } catch (error) {
-      console.error('Location error:', error)
+      console.error("Location error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  /* =========================
+  /* 
      SEARCH
-  ========================== */
+  */
   const performSearch = async (text: string) => {
     try {
       const url =
@@ -176,86 +184,89 @@ const fetchVendors = async () => {
         `&format=json` +
         `&addressdetails=1` +
         `&limit=3` +
-        `&countrycodes=ng`
+        `&countrycodes=ng`;
 
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'Morengo/1.0 (contact@myapp.com)',
-          'Accept-Language': 'en',
+          "User-Agent": "Morengo/1.0 (contact@myapp.com)",
+          "Accept-Language": "en",
         },
-      })
-      const vendors = await getVendors({query:text}) || []
-      const notimSuggestions = await response.json()
-      const vendorSuggestions = vendors.map((vendor) => {return {display_name:vendor.name, place_id:vendor.$id,lon:vendor.coords[0], lat:vendor.coords[1], isVendor:true}})
-      
-      const data = [...notimSuggestions, ...vendorSuggestions]
+      });
+      const vendors = (await getVendors({ query: text })) || [];
+      const notimSuggestions = await response.json();
+      const vendorSuggestions = vendors.map((vendor) => {
+        return {
+          display_name: vendor.name,
+          place_id: vendor.$id,
+          lon: vendor.coords[0],
+          lat: vendor.coords[1],
+          isVendor: true,
+        };
+      });
+
+      const data = [...notimSuggestions, ...vendorSuggestions];
       if (Array.isArray(data) && data.length > 0) {
-        setSuggestions(data)
+        setSuggestions(data);
       } else {
-        setSuggestions([])
+        setSuggestions([]);
       }
     } catch (err) {
-      console.error('Search error:', err)
-      setSuggestions([])
+      console.error("Search error:", err);
+      setSuggestions([]);
     }
-  }
+  };
 
   const handleSearch = (text: string) => {
-    setSearchText(text)
+    setSearchText(text);
 
-    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
-    if (text.length < 2) {
-      setSuggestions([])
+    if (text.length < 1) {
+      setSuggestions([]);
     } else {
       searchTimeout.current = setTimeout(() => {
-        performSearch(text)
-      }, 400)
+        performSearch(text);
+      }, 400);
     }
-  }
+  };
 
   const handleSelectLocation = (item: any) => {
-    const coords = [parseFloat(item.lon), parseFloat(item.lat)]
+    const coords = [parseFloat(item.lon), parseFloat(item.lat)];
 
-    setMapCoords(coords)
-    setSearchText(item.display_name)
-    setSuggestions([])
-    setIsFocused(false)
-  }
+    setMapCoords(coords);
+    setSearchText(item.display_name);
+    setSuggestions([]);
+    setIsFocused(false);
+  };
 
   return (
     <View className="flex-1 items-center">
       <MapView
-        style={{ flex: 1, width: '100%' }}
+        style={{ flex: 1, width: "100%" }}
         mapStyle={JSON.stringify(OSM_STYLE)}
         logoEnabled={false}
         compassEnabled={false}
       >
-        <Camera
-          ref={cameraRef}
-          zoomLevel={15}
-          centerCoordinate={mapCoords}
-        />
+        <Camera ref={cameraRef} zoomLevel={15} centerCoordinate={mapCoords} />
 
         {!isLoading && (
-        <>
+          <>
             <MarkerView coordinate={mapCoords}>
               <Image source={images.location} className="w-8 h-8" />
             </MarkerView>
 
-          {vendors?.length > 0 && vendors.map((vendor) => (
-            <MarkerView
-              key={vendor.$id}
-              coordinate={vendor.coords}
-            >
-              <Image
-                source={images.bag}
-                style={{ width: 32, height: 32 }}
-              />
-            </MarkerView>
-          ))}
-        </>
-         
+            {vendors?.length > 0 &&
+              vendors.map((vendor) => (
+                <MarkerView key={vendor.$id} coordinate={vendor.coords}>
+                  <MaterialIcons
+                    name="storefront"
+                    size={32}
+                    color={color.moregreen}
+                    className="self-center"
+                  />
+                </MarkerView>
+              ))}
+          </>
         )}
       </MapView>
 
@@ -270,12 +281,12 @@ const fetchVendors = async () => {
         />
 
         {!isFocused && (
-          <Ionicons
-            name="search-outline"
+          <MaterialIcons
+            name="search"
             size={24}
             color="#c1c1c393"
             className={`mr-[2] top-[25%] left-16 absolute ${
-              !searchText ? 'opacity-1' : 'opacity-0'
+              !searchText ? "opacity-1" : "opacity-0"
             }`}
           />
         )}
@@ -287,8 +298,17 @@ const fetchVendors = async () => {
                 key={item.place_id ?? index}
                 onPress={() => handleSelectLocation(item)}
                 className="p-4 border-b flex-row border-zinc-100"
-              > {item.isVendor &&
-                <Image source={images.bag} tintColor={'red'}/>}
+              >
+                {" "}
+                {item.isVendor && (
+                  // <Image source={images.bag} tintColor={'red'}/>
+                  <MaterialIcons
+                    name="fastfood"
+                    size={20}
+                    color={color.morange}
+                    className="mr-2"
+                  />
+                )}
                 <Text numberOfLines={1} className="font-[Nunito-regular]">
                   {item.display_name}
                 </Text>
@@ -305,8 +325,8 @@ const fetchVendors = async () => {
             name="add"
             color="#FDBA74"
             onPress={() => {
-              setIsSaveVendorOpened(false)
-              setIsSaveUserOpened((prev) => !prev)
+              setIsSaveVendorOpened(false);
+              setIsSaveUserOpened((prev) => !prev);
             }}
           />
           <AddLocation
@@ -316,14 +336,14 @@ const fetchVendors = async () => {
           />
         </View>
 
-        {!(user?.role === 'Customer') && (
+        {!(user?.role === "Customer") && (
           <View>
             <LocationSideButton
               name="add-location-alt"
               color="green"
               onPress={() => {
-                setIsSaveUserOpened(false)
-                setIsSaveVendorOpened((prev) => !prev)
+                setIsSaveUserOpened(false);
+                setIsSaveVendorOpened((prev) => !prev);
               }}
             />
           </View>
@@ -346,7 +366,7 @@ const fetchVendors = async () => {
         />
       )}
     </View>
-  )
-}
+  );
+};
 
-export default location
+export default location;

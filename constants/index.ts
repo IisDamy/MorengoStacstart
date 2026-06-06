@@ -54,6 +54,8 @@ import womaneatschicken from '@/assets/images/womaneatschicken.jpg';
 import businesslady from '@/assets/images/businesslady.jpg';
 import guywithdrink from '@/assets/images/guywithdrink.jpg';
 import cartoonArrow from '@/assets/images/cartoon-arrow.png'
+import allsorts from '@/assets/images/allsorts.png';
+
 export const CATEGORIES = [
     {
         id: "1",
@@ -185,7 +187,8 @@ export const images = {
     target,
     customdelivery,
     guywithdrink,
-    cartoonArrow
+    cartoonArrow,
+    allsorts
     
 };
 

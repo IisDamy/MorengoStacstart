@@ -192,7 +192,7 @@ const checkout = async () => {
 
          </View>: 
 
-            <Text className='self-center my-auto font-[Nunito-extrabold] text-xl tracking-wide text-green-500  bg-white'>CART IS EMPTY</Text>
+            <Text className='self-center my-auto font-[Crispy] tracking-tighter text-lg  text-green-500 rotate-[-10deg] bg-white '>YOUR CART IS EMPTY</Text>
 
          }
      

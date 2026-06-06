@@ -19,7 +19,11 @@ const Profile = () => {
 
 
     const toggleSwitchNotifs = () => setEnableNotifs(previousState => !previousState);
-    const toggleSwitchPromo = () => setEnablePromoNotifs(prev => !prev)
+    const toggleSwitchPromo = () => {
+      setEnablePromoNotifs(prev => !prev)
+      console.log(image)
+    }
+
   const LogOff = async () => {
   try{
     await signOut()
@@ -57,7 +61,7 @@ const Profile = () => {
           <Text className='text-xs font-[Nunito-regular] mt-2 w-[50] text-center'>Check points</Text>
         </View>
 
-        <TouchableOpacity className='flex items-center' onPress={()=> user?.role === 'Customer'? Alert.alert('You need to create a vendor inorder to access dashboard') : router.push('/Dashboard')}>
+        <TouchableOpacity className='flex items-center' onPress={()=> user?.role === 'Customer'? Alert.alert('You need be a store owner or morengo rider inorder to access dashboard') : router.push('/Dashboard')}>
           <View className='rounded-full w-12 h-12 border bg-black'></View>
           <Text className='text-xs font-[Nunito-regular] mt-2 w-[50] text-center'>Open dashboard</Text>
         </TouchableOpacity>

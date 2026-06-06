@@ -17,7 +17,7 @@ const LocationChangeButton = () => {
   const { user } = useAuthStore()
   const {saveLocation, locations} = useCordsStore()
 
-  const [defaultLocation, setDefaultLocation] = useState({})
+
   const [open, toggleOpen] = useState(false)
 
   const scale = useSharedValue(0);
@@ -25,10 +25,10 @@ const LocationChangeButton = () => {
 
 
   
-
+  const defaultLocation = locations.find(loc => loc.isCurrent) || { label: 'Delivery Address', coords: [] };
   const changeLocation = async (location:Location) => {
 try{
-    setDefaultLocation(location) 
+
     handleToggle();
 }
 catch(e:any){

@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 
-const MenuVendorPanel = ({ data, key }: { data: any, key: number}) => {
+const MenuVendorPanel = ({ data}: { data: any, key: number}) => {
   const exclude = ['popular', 'local', 'favourite', 'recent']
   const isFavourite = data.category.includes('favourite')
   const displayTags = data.category.filter((n: string) => !exclude.includes(n))
@@ -16,7 +16,6 @@ const MenuVendorPanel = ({ data, key }: { data: any, key: number}) => {
 
   return (
     <TouchableOpacity
-      key={key}
       activeOpacity={0.82}
       onPress={() => router.push(`/(screens)/SearchPage?vendors=${data.$id}`)}
     >

@@ -5,8 +5,11 @@ import { Image, TextInput, TouchableOpacity, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Filter from "./Filter";
 
+interface SearchbarProps {
+    handleOpenFilter: () => void;
+}
 
-const Searchbar = () => {
+const Searchbar = ({ handleOpenFilter }: SearchbarProps) => {
     const params = useLocalSearchParams<{ query: string }>();
     const [query, setQuery] = useState(params.query);
 
@@ -35,6 +38,7 @@ const Searchbar = () => {
             <TouchableOpacity
                 className="pr-5"
                 // onPress={() => router.setParams({ query })}
+                onPress={handleOpenFilter}
             >
                 {/* <Image
                     source={images.search}
@@ -42,7 +46,7 @@ const Searchbar = () => {
                     resizeMode="contain"
                     tintColor="#5D5F6D"
                 /> */}
-                <Filter />
+                <MaterialIcons name="tune" size={24} color="#6498e0" />
                 {/* <View className="absolute w-[150] h-[150] bg-white">
 
                 </View> */}

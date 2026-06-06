@@ -224,7 +224,7 @@ export default function GridAnim() {
             .damping(20)
             .stiffness(110)}
           exiting={FadeOut.duration(
-            150
+            100
           )}
           style={[
             styles.descriptionBubble,
@@ -237,8 +237,8 @@ export default function GridAnim() {
           {/* text */}
           <Animated.Text
             entering={SlideInDown.springify()
-              .damping(18)
-              .stiffness(90)}
+              .damping(24)
+              .stiffness(110)}
             style={
               styles.descriptionText
             }
@@ -406,9 +406,7 @@ export default function GridAnim() {
         {/* BOX 4 */}
         <Pressable
           onPress={() =>
-            console.log(
-              "clicked box 4"
-            )
+           router.push("/(screens)/Questionaire")
           }
           onPressIn={() =>
             handlePressIn(4)

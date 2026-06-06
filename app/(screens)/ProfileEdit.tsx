@@ -18,7 +18,7 @@ const ProfileEdit = () => {
       const [form, setForm] = useState({
       name:user?.name,
       email:user?.email,
-      number:user?.number,
+      phone:user?.phone,
       institution:user?.institution,
     })
 
@@ -36,7 +36,7 @@ const ProfileEdit = () => {
       userId:user?.$id,
       name:form.name, 
       email:form.email, 
-      number:form.number, 
+      phone:form.phone, 
       institution:form.institution
     , avatar:avatarId,
      
@@ -114,9 +114,9 @@ const ProfileEdit = () => {
           <View className='flex-row items-center justify-between'>
             <TextInput
               className='w-full'
-              value={form.number}
+              value={form.phone}
                  onChangeText={(text) => {
-            setForm({ ...form, number: text });
+            setForm({ ...form, phone: text });
           }}
             />
             <MaterialIcons name='mode-edit-outline' className='relative right-5' size={20} color={'#C2C2CB'}/>

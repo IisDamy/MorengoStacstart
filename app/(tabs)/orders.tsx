@@ -11,48 +11,12 @@ import { subscribeToOrders } from '@/lib/appwrite'
 import Animated, {
   FadeInDown,
   ZoomIn,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
 } from 'react-native-reanimated'
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
-import { scheduleOnRN } from 'react-native-worklets'
+import {  GestureHandlerRootView } from 'react-native-gesture-handler'
 import useNotificationStore from '@/store/notification.store'
+import SwipeToCancel from '@/components/SwipeToCancel'
 
 
-const SwipeToCancel = ({ children, onSwipe }: { children: React.ReactNode; onSwipe: () => void }) => {
-  const translateX = useSharedValue(0)
-
-  const pan = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .failOffsetY([-20, 20])
-    .onUpdate((e) => {
-      if (e.translationX < 0) {
-        translateX.value = e.translationX
-      }
-    })
-    .onEnd((e) => {
-      if (e.translationX < -50 ) {
-        translateX.value = withSpring(0, { damping: 20, stiffness: 100 }, () => {
-          scheduleOnRN(onSwipe)
-        })
-      } else {
-        translateX.value = withSpring(0, { damping: 20, stiffness: 100 })
-      }
-    })
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }))
-
-  return (
-    <GestureDetector gesture={pan}>
-      <Animated.View style={animatedStyle}>
-        {children}
-      </Animated.View>
-    </GestureDetector>
-  )
-}
 
 
 const orders = () => {
@@ -88,6 +52,7 @@ const orders = () => {
       getOrders()
     }
   }, [items])
+
 
   useEffect(() => {
     const unsubscribe = subscribeToOrders((updatedOrder) => {
@@ -128,14 +93,14 @@ const orders = () => {
       <SafeAreaView className='h-full w-full items-center bg-white pb-10'>
         <View className='h-full w-full bg-white flex px-6 items-center'>
           <TabsHeader tabName='Orders' />
-          <View className='flex-row w-full mt-12 pb-3 border-b border-zinc-300 justify-between'>
+          <View className='flex-row w-full mt-12 pb-3  justify-between'>
             {orderStage.map((group, index) => (
               <Pressable key={index} onPress={() => setActiveGroup(group)}>
                 <Text
-                  className='py-3 font-[Nunito-bold]'
+                  className=' font-[Nunito-bold] w-full uppercase'
                   style={{
                     color: activeGroup === group ? color.moregreen : '#404a3854',
-                    fontSize: 14,
+                    fontSize: 12,
                   }}
                 >
                   {group}
@@ -149,7 +114,7 @@ const orders = () => {
           ) : (
             <ScrollView showsVerticalScrollIndicator={false} className='w-full'>
               {orders.length === 0 && (
-                <Text className='text-center text-zinc-400 mt-10'>
+                <Text className='text-center font-[Crispy]  mt-64 rotate-[10deg] text-[16px]' style={{ color: color.morange }}>
                   No {activeGroup.toLowerCase()} orders
                 </Text>
               )}

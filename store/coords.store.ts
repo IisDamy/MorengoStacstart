@@ -9,7 +9,7 @@ persist(
     (set, get) => ({
         locations: [],
 
-        location: {coords:[], label:''},
+        location: {coords:[], label:'', isCurrent:false},
 
        saveLocation: (loc: Location) => {
         const exists = get().locations.some(
@@ -21,7 +21,7 @@ persist(
             )
         );
         
-        if(get().locations.length > 8 ){
+        if(get().locations.length < 8 ){
             if (exists) {
           set({
             locations: get().locations.map((item) =>
@@ -35,8 +35,12 @@ persist(
             ),
           });
         } else {
+            set({
+              locations: get().locations.map((oloc) => {return {...oloc, isCurrent:false}}) 
+            });
+
           set({
-            locations: [...get().locations, loc],
+            locations: [...get().locations, {...loc, isCurrent:true}],
           });
         }
 

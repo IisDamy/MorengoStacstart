@@ -64,7 +64,7 @@ export const createUser = async ({
   password,
   name,
   institution,
-  number,
+  phone,
   isStudent,
 }: CreateUserParams) => {
   try {
@@ -96,7 +96,7 @@ export const createUser = async ({
         email,
         name,
         institution,
-        number,
+        phone,
         isStudent,
         points: 0,
       },
@@ -217,7 +217,7 @@ export const getCurrentUser = async () => {
 
 
 
-export const getMenuItems = async ({ isFavourite, query, vendors, category }: GetItemParams) => {
+export const getMenuItems = async ({ isFavourite, query, vendors}: GetItemParams) => {
   try {
     const queries = [];
 
@@ -234,7 +234,7 @@ export const getMenuItems = async ({ isFavourite, query, vendors, category }: Ge
     if (vendors) queries.push(Query.equal('vendors', vendors));
     if (isFavourite) queries.push(Query.equal("isFavourite", true));
     if (query) queries.push(Query.search("name", query));
-    if (category) queries.push(Query.contains("category", [category]));
+    // if (category) queries.push(Query.contains("category", [category]));
 
     // change listdocuments
     const menus = await tablesDB.listRows(
@@ -316,7 +316,7 @@ catch(e:any){
 export const updateUser = async ({
   name,
   institution,
-  number,
+  phone,
   userId,
   email,
   avatar,
@@ -324,7 +324,7 @@ export const updateUser = async ({
 }: {
   name: string | undefined;
   institution: string | undefined;
-  number: string | undefined;
+  phone: string | undefined;
   userId: string | undefined;
   email: string | undefined;
   avatar: string | undefined;
@@ -367,7 +367,7 @@ export const updateUser = async ({
       data: {
         name,
         institution,
-        number,
+        phone,
         email,
         avatar,
         defaultAddress,
@@ -604,7 +604,7 @@ export const getAdminId = async () => {
       databaseId: appwriteConfig.databaseId,
       tableId: "user",
       queries: [
-        Query.equal("role", "Admin")
+        Query.equal("role", "admin")
       ],
     });
 
@@ -672,7 +672,7 @@ export const uploadImage = async (uri: string) => {
 };
 
 export const displayImage =  (imageId: string) => {
-  const imageUrl = storage.getFilePreviewURL(
+  const imageUrl = storage.getFileViewURL(
      appwriteConfig.bucketId,
     imageId,
    );
@@ -697,8 +697,18 @@ export const fetchOrders = async (accountId: string): Promise<Order[]> => {
   }))
 }
 
-export const getAllOrders = async () => {
-  const res = await tablesDB.listRows({
+
+export const getAllOrders = async (accountId: string) => {
+  const authorized = await tablesDB.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: 'user',
+    queries: [
+      Query.contains('role', ['admin','rider']),
+    ],
+  })
+
+  if (!riderId) throw new Error('unauthorized access')
+    const res = await tablesDB.listRows({
     databaseId: appwriteConfig.databaseId,
     tableId: 'orders'
   })

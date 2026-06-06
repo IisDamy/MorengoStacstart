@@ -42,6 +42,7 @@ export default Sentry.wrap(function RootLayout() {
     "Nunito-light": require("../assets/fonts/Nunito-Light.ttf"),
     "Nunito-medium": require("../assets/fonts/Nunito-Medium.ttf"),
     "Nunito-extraBold": require("../assets/fonts/Nunito-ExtraBold.ttf"),
+    "Nunito-black": require("../assets/fonts/Nunito-Black.ttf"),
 
   });
   const { isLoading, fetchAuthenticatedUser, user, setIsAuthenticated } = useAuthStore();
@@ -66,7 +67,6 @@ export default Sentry.wrap(function RootLayout() {
       const { orderId, status } = response.notification.request.content.data;
       if (orderId) router.push('/(tabs)/orders') // navigate to order details page
     });
-
     return () => subscription.remove(); // cleanup on unmount
   }, [user]);
 

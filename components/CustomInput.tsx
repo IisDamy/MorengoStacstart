@@ -22,13 +22,16 @@ const CustomInput = ({
   const [isFocused, setIsFocused] = React.useState(false);
   const [isVisible, setIsVisible] = useState(false)
   return (
-    <View className= {`rounded-[10] items-center  flex-row bg-zinc-100  border-zinc-200 h-[60]  border ${style}`}
-
-    >
+    <>
       <TextInput
         multiline={multiline || false}
         textAlignVertical={multiline ? 'top' : 'center'}
-        className=" w-full p-2 h-full font-[Nunito-regular] text-zinc-800"
+        className={`  py-3  font-[Nunito-regular] bg-zinc-100 border 
+        border-zinc-200 rounded-2xl px-4  text-[14px] text-zinc-800
+         ${style}
+           ${
+      multiline ? 'h-[100px]' : 'h-[55px]'} 
+        `}
         autoCapitalize="none"
         autoCorrect={false}
     maxLength={maxLength || undefined}
@@ -51,9 +54,8 @@ const CustomInput = ({
         color={'black'}
         className="relative  p-2 right-10 "
         /> 
-      </TouchableOpacity>}
-    
-    </View>
+      </TouchableOpacity>}   
+    </>
   );
 };
 

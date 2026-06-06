@@ -17,7 +17,7 @@ import LottieView from 'lottie-react-native';
 import Tabs from 'expo-router';
 import { Manifesto, } from '@/components';
 import useAuthStore from '@/store/auth.store';
-import Background from '@/components/Background';
+import Background from '@/components/ui/Background';
 
 // SIGN IN POP UP ON PAGE OPEN if user aint signed in
 

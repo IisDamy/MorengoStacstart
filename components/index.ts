@@ -1,35 +1,34 @@
-import CustomButton from "./CustomButton";
+import CreateVendorLocation from "./CreateVendorLocation";
 import CustomInput from "./CustomInput";
+import LocationChangeButton from "./LocationChangeButton";
+import LocationSideButton from "./LocationSideButtons";
 import Manifesto from "./Manifesto";
-import SearchBar from "./SearchBar";
 import MenuFavouritePanel from "./MenuFavouritePanel";
 import MenuVendorPanel from "./MenuVendorPanel";
-import NotificationBell from "./NotificationBell";
-import TabsHeader from "./TabsHeader";
-import CustomDropdown from "./CustomDropdown";
-import ToggleButton from "./ToggleButton";
-import LocationChangeButton from "./LocationChangeButton";
 import PointsIcon from "./PointsCounter";
-import LocationSideButton from "./LocationSideButtons";
 import PopupWrapper from "./PopUpWrapper";
-import CreateVendorLocation from "./CreateVendorLocation";
-
-
+import ToggleButton from "./ToggleButton";
+import CustomButton from "./ui/CustomButton";
+import CustomDropdown from "./ui/CustomDropdown";
+import NotificationBell from "./ui/NotificationBell";
+import SearchBar from "./ui/SearchBar";
+import TabsHeader from "./ui/TabsHeader";
 
 export {
-        CustomButton, 
-        Manifesto, 
-        SearchBar, 
-        CustomInput,
-        MenuFavouritePanel,
-        MenuVendorPanel,
-        NotificationBell,
-        TabsHeader,
-        CustomDropdown,
-        ToggleButton,
-        LocationChangeButton,
-        PointsIcon,
-        LocationSideButton,
-        PopupWrapper,
-        CreateVendorLocation
-    }
+    CreateVendorLocation,
+    CustomButton,
+    CustomDropdown,
+    CustomInput,
+    LocationChangeButton,
+    LocationSideButton,
+    Manifesto,
+    MenuFavouritePanel,
+    MenuVendorPanel,
+    NotificationBell,
+    PointsIcon,
+    PopupWrapper,
+    SearchBar,
+    TabsHeader,
+    ToggleButton
+};
+

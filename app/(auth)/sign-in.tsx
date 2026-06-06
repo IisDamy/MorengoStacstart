@@ -1,38 +1,34 @@
-import CustomButton from "@/components/CustomButton";
 import CustomInput from "@/components/CustomInput";
+import CustomButton from "@/components/ui/CustomButton";
 import { color } from "@/constants";
-import { SignIn as EmailSignIn, getCurrentUser, OAuthSignIn, recoverPassword } from "@/lib/appwrite";
+import {
+    SignIn as EmailSignIn,
+    OAuthSignIn,
+    refreshAuthStore
+} from "@/lib/appwrite";
+import useAuthStore from "@/store/auth.store";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
-import useAuthStore from '@/store/auth.store'
-import {
-    Alert,
-    Text,
-    TouchableOpacity,
-    View
-} from "react-native";
-import { refreshAuthStore } from "@/lib/appwrite";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 
 // bg will be decorated beautifully with probalbly orange color
 export default function SignIn() {
+  const { isAuthenticated, fetchAuthenticatedUser } = useAuthStore();
 
-      const { isAuthenticated, fetchAuthenticatedUser } = useAuthStore();
-      
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmittingGoogle, setIsSubmittingGoogle] = useState(false)
+  const [isSubmittingGoogle, setIsSubmittingGoogle] = useState(false);
 
   const [form, setForm] = useState({ email: "", password: "" });
 
   const submit = async () => {
-     refreshAuthStore()
+    refreshAuthStore();
     if (!form.email || !form.password)
       Alert.alert("Error", "Please enter valid email address and password");
     setIsSubmitting(true);
     try {
-       
-       await EmailSignIn({ email: form.email, password: form.password });
+      await EmailSignIn({ email: form.email, password: form.password });
       Alert.alert("Success", "You have signed in successfully");
-      
+
       router.replace("/(tabs)");
     } catch (error: any) {
       Alert.alert(
@@ -47,14 +43,11 @@ export default function SignIn() {
   const handleOAuthSignIn = async () => {
     setIsSubmittingGoogle(true);
     try {
-     const result = await OAuthSignIn();
-       if(result){
-        fetchAuthenticatedUser()
-      }
-      else throw new Error()
-     
+      const result = await OAuthSignIn();
+      if (result) {
+        fetchAuthenticatedUser();
+      } else throw new Error();
     } catch (error: any) {
-   
       Alert.alert(
         "OAuth Error",
         error.message || "Failed to sign in with Google. Please try again.",
@@ -62,7 +55,6 @@ export default function SignIn() {
     } finally {
       setIsSubmitting(false);
     }
-
   };
 
   return (
@@ -121,16 +113,19 @@ export default function SignIn() {
           secureTextEntry={true}
         />
 
-        <TouchableOpacity onPress={() => router.push('/(screens)/ResetPassword')}>
+        <TouchableOpacity
+          onPress={() => router.push("/(screens)/ResetPassword")}
+        >
           <Text className={`text-right text-green-300 tracking-wide`}>
             Forgot Password?
           </Text>
         </TouchableOpacity>
 
-        <CustomButton title="Sign In" 
-        onPress={submit} 
-        style={`bg-[#fc7323]`}
-        isLoading={isSubmitting}
+        <CustomButton
+          title="Sign In"
+          onPress={submit}
+          style={`bg-[#fc7323]`}
+          isLoading={isSubmitting}
         />
 
         <Text className="text-center text-md">OR</Text>

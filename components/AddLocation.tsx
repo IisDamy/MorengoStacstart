@@ -6,7 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated'
-import { createLocation, getUserLocationes, updateUserLocation } from '@/lib/appwrite'
+
 import useAuthStore from '@/store/auth.store'
 import { Location } from '@/types'
 import { useCordsStore } from '@/store/coords.store'
@@ -23,7 +23,7 @@ const AddLocation = ({ isOpened, coords }: AddLocationProps) => {
 
   const {saveLocation} = useCordsStore()
   const [isLoading, setIsLoading] = useState(false)
-  const [newLocation, setNewLocation] = useState({ label: 'Home', coords: coords })
+  const [newLocation, setNewLocation] = useState({ label: 'Home', coords: coords } as Location)
 
   const inputRef = useRef(null)
   const scale = useSharedValue(0.5)
@@ -37,18 +37,10 @@ const AddLocation = ({ isOpened, coords }: AddLocationProps) => {
 
 
 
-  const handleAddLocation = async () => {
-    setIsLoading(true)
-    try{     
-    saveLocation(newLocation)
-    }
-    catch(e){
-
-    }
-    finally{
-      setIsLoading(false)
-    }
-    
+  const handleAddLocation =  () => {
+   saveLocation({...newLocation, coords})
+    Alert.alert('Location saved successfully!')
+ 
   }
 
 
@@ -95,7 +87,7 @@ const AddLocation = ({ isOpened, coords }: AddLocationProps) => {
           className="p-2 rounded-[10] text-center font-[Nunito-bold] text-white"
           style={{ backgroundColor: isLoading ? '#aaa' : color.moregreen }}
         >
-          {isLoading ? 'Saving...' : 'Save'}
+          Save
         </Text>
       </TouchableOpacity>
     </Animated.View>
