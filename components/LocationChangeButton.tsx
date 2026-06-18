@@ -15,7 +15,7 @@ import { Location } from '@/types';
 
 const LocationChangeButton = () => {
   const { user } = useAuthStore()
-  const {saveLocation, locations} = useCordsStore()
+  const {setCurrentLocation,location, locations} = useCordsStore()
 
 
   const [open, toggleOpen] = useState(false)
@@ -25,7 +25,7 @@ const LocationChangeButton = () => {
 
 
   
-  const defaultLocation = locations.find(loc => loc.isCurrent) || { label: 'Delivery Address', coords: [] };
+  // const defaultLocation = locations.find(loc => loc.isCurrent) || { label: 'Delivery Address', coords: [] };
   const changeLocation = async (location:Location) => {
 try{
 
@@ -64,7 +64,7 @@ catch(e:any){
           <Text className="text-center font-[Nunito-bold] max-w-[50] ml-[3] text-[12px] text-green-100"
       
           >
-            {defaultLocation.label || "Delivery Address"}
+            {location?.label || 'Delivery Address'}
           </Text>
 
           <MaterialIcons
@@ -80,13 +80,13 @@ catch(e:any){
         style={[animatedDropdownStyle, { transformOrigin: "top" }]}
         className='absolute border border-t-[0] rounded-b-[5] px-2 left-[6] bg-green-100 top-[32]'
       >
-        {locations.map((item) => (
+        {locations.map((loc) => (
           <Pressable
-            key={item.$id || item.label}
-            onPress={() => changeLocation(item)}
+            key={loc.label}
+            onPress={() => setCurrentLocation(loc)}
           >
             <Text className='border-b px-2 py-1 border-white text-sm'>
-              {item.label}
+              {loc.label}
             </Text>
           </Pressable>
         ))

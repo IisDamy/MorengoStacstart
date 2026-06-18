@@ -6,7 +6,7 @@ import {images} from '../../constants/index'
 import Sentry from '@sentry/react-native'
 import useAuthStore from '@/store/auth.store'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { refreshAuthStore } from '@/lib/appwrite'
+import { refreshAuthStore, clearAuthStore } from '@/lib/appwrite'
 
 
 const AuthLayout = () => {
@@ -27,6 +27,9 @@ const AuthLayout = () => {
   //   initialize();
   // }, []);
 
+//   useEffect(() => {
+//  clearAuthStore()
+//   },[])
 
   if (user?.role !== 'customer' && isAuthenticated) return <Redirect href='/(screens)/Dashboard' />
   if(isAuthenticated && !isLoading) return <Redirect href='/(tabs)' />

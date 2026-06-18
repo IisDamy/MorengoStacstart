@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Pressable, Alert, Image, ActivityIndicator } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { color } from '@/constants'
+import { color, images } from '@/constants'
 import { TabsHeader } from '@/components'
 import { deleteOrder, fetchOrders } from '@/lib/appwrite'
 import useAuthStore from '@/store/auth.store'
@@ -15,112 +15,12 @@ import Animated, {
 import {  GestureHandlerRootView } from 'react-native-gesture-handler'
 import useNotificationStore from '@/store/notification.store'
 import SwipeToCancel from '@/components/SwipeToCancel'
+import ConnectRiderCard from '@/components/ConnectRiderCard'
 
+const OrderCard =({order, handleCancel, openCancelPending, setOpenCancelPending}) =>  {
 
+  (<SwipeToCancel key={order.$id} onSwipe={() => handleCancel(order.$id)}>
 
-
-const orders = () => {
-  const { user } = useAuthStore()
-  const { addMsg } = useNotificationStore()
-  const [activeGroup, setActiveGroup] = useState('Pending')
-  const orderStage = ['Pending', 'Confirmed', 'Delivered']
-  const [openCancelPending, setOpenCancelPending] = useState<string | null>(null)
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const { items } = useCartStore()
-
-  const getOrders = async () => {
-    setLoading(true)
-    try {
-      const ordersRes = await fetchOrders(user.$id)
-      if (!ordersRes) {}
-      setOrders(ordersRes)
-      console.log(ordersRes)
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    getOrders()
-  }, [])
-
-  useEffect(() => {
-    if (items.length === 0) {
-      getOrders()
-    }
-  }, [items])
-
-
-  useEffect(() => {
-    const unsubscribe = subscribeToOrders((updatedOrder) => {
-      addMsg({ text: `Order ${updatedOrder.status.toLowerCase()}`, type: 'success' })
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.$id === updatedOrder.$id ? updatedOrder : order
-        )
-      )
-      console.log(updatedOrder, 'www')
-    }, user?.$id)
-
-    return unsubscribe
-  }, [])
-
-  const handleCancel = (orderId: string) => {
-    Alert.alert('Cancel Order', 'Are you sure you want to cancel this order?', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Yes, Cancel',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteOrder(orderId)
-            setOrders((prev) => prev.filter((o) => o.$id !== orderId))
-            setOpenCancelPending(null)
-          } catch (e) {
-            console.error('Cancel order error:', e)
-            addMsg({ text: 'Failed to cancel order', type: 'error' })
-          }
-        },
-      },
-    ])
-  }
-
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView className='h-full w-full items-center bg-white pb-10'>
-        <View className='h-full w-full bg-white flex px-6 items-center'>
-          <TabsHeader tabName='Orders' />
-          <View className='flex-row w-full mt-12 pb-3  justify-between'>
-            {orderStage.map((group, index) => (
-              <Pressable key={index} onPress={() => setActiveGroup(group)}>
-                <Text
-                  className=' font-[Nunito-bold] w-full uppercase'
-                  style={{
-                    color: activeGroup === group ? color.moregreen : '#404a3854',
-                    fontSize: 12,
-                  }}
-                >
-                  {group}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {loading ? (
-            <ActivityIndicator className='mt-10' color={color.moregreen} />
-          ) : (
-            <ScrollView showsVerticalScrollIndicator={false} className='w-full'>
-              {orders.length === 0 && (
-                <Text className='text-center font-[Crispy]  mt-64 rotate-[10deg] text-[16px]' style={{ color: color.morange }}>
-                  No {activeGroup.toLowerCase()} orders
-                </Text>
-              )}
-
-              {orders.map((order) => (
-                <SwipeToCancel key={order.$id} onSwipe={() => handleCancel(order.$id)}>
                   <Pressable
                     onPress={() => setOpenCancelPending(null)}
                     onLongPress={() =>
@@ -193,7 +93,122 @@ const orders = () => {
                     </View>
                   </Pressable>
                 </SwipeToCancel>
-              ))}
+)}
+
+const orders = () => {
+  const { user } = useAuthStore()
+  const { addMsg } = useNotificationStore()
+  const [activeGroup, setActiveGroup] = useState('Pending')
+  const orderStage = ['Pending', 'Confirmed', 'Delivered']
+  const [loading, setLoading] = useState(true)
+  const { items } = useCartStore()
+  const [orders, setOrders] = useState<Order[]>([])
+  const [openCancelPending, setOpenCancelPending] = useState<string | null>(null)
+
+
+      const handleCancel = (orderId: string) => {
+    Alert.alert('Cancel Order', 'Are you sure you want to cancel this order?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes, Cancel',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteOrder(orderId)
+            setOrders((prev) => prev.filter((o) => o.$id !== orderId))
+            setOpenCancelPending(null)
+          } catch (e) {
+            console.error('Cancel order error:', e)
+            addMsg({ text: 'Failed to cancel order', type: 'error' })
+          }
+        },
+      },
+    ])
+  }
+
+
+  const getOrders = async () => {
+    setLoading(true)
+    try {
+      const ordersRes = await fetchOrders(user.$id)
+      if (!ordersRes) {}
+      setOrders(ordersRes)
+      console.log(ordersRes)
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    getOrders()
+  }, [])
+
+  useEffect(() => {
+    if (items.length === 0) {
+      getOrders()
+    }
+  }, [items])
+
+
+  useEffect(() => {
+    const unsubscribe = subscribeToOrders((updatedOrder) => {
+      addMsg({ text: `Order ${updatedOrder.status.toLowerCase()}`, type: 'success' })
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.$id === updatedOrder.$id ? updatedOrder : order
+        )
+      )
+      console.log(updatedOrder, 'www')
+    }, user?.$id)
+
+    return unsubscribe
+  }, [])
+
+
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView className='h-full w-full items-center bg-white pb-10'>
+        <View className='h-full w-full bg-white flex px-6 items-center'>
+          <TabsHeader tabName='Orders' />
+          <View className='flex-row w-full mt-12 pb-3  justify-between'>
+            {orderStage.map((group, index) => (
+              <Pressable key={index} onPress={() => setActiveGroup(group)}>
+                <Text
+                  className=' font-[Nunito-bold] w-full uppercase'
+                  style={{
+                    color: activeGroup === group ? color.moregreen : '#404a3854',
+                    fontSize: 12,
+                  }}
+                >
+                  {group}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {loading ? (
+            <ActivityIndicator className='mt-10' color={color.moregreen} />
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false} className='w-full'>
+              {orders.length === 0 && (
+                <Text className='text-center font-[Crispy]  mt-64 rotate-[10deg] text-[16px]' style={{ color: color.morange }}>
+                  No {activeGroup.toLowerCase()} orders
+                </Text>
+              )}
+              {/* <View className='h-56 w-64 border  rounded-2xl mt-8 self-center'
+                
+              >
+               
+              </View> */}
+             
+              <ConnectRiderCard />
+
+              {/* {orders.map((order) => (
+                <View></View>
+              ))} */}
             </ScrollView>
           )}
         </View>

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
 import { tablesDB, appwriteConfig } from '../lib/appwrite';
 
-export function usePushToken(userId: string) {
+export function usePushToken(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return
 

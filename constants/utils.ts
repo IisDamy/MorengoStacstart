@@ -27,3 +27,14 @@ export const convertTo12Hour = (time24: string) => {
 
   return `${formattedHours} ${period}`;
 };
+
+
+export function nairaToKobo(naira: number) {
+  if (isNaN(naira) || naira < 0) {
+    throw new Error("Please enter a valid positive number");
+  }
+  // Math.round fixes JS floating-point arithmetic quirks
+  return Math.round(naira * 100);
+}
+
+

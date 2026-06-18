@@ -62,7 +62,7 @@ const location = () => {
   const [vendors, setVendors] = useState<any[]>([]);
 
   const searchTimeout = useRef(null);
-const currentLoc = locations.find((loc) => loc.isCurrent);
+// const location = locations.find((loc) => loc.isCurrent);
 
 
   useEffect(() => {
@@ -72,7 +72,7 @@ const currentLoc = locations.find((loc) => loc.isCurrent);
     return () => {
       if (searchTimeout.current) clearTimeout(searchTimeout.current);
     };
-  }, [currentLoc]);
+  }, [location]);
 
   /* 
      INITIAL ROUTING LOGIC
@@ -81,13 +81,13 @@ const currentLoc = locations.find((loc) => loc.isCurrent);
     setIsLoading(true);
     
     try {
-      if (currentLoc) {
-        console.log(currentLoc);
-        setMapCoords(currentLoc.coords);
+      if (location) {
+        console.log(location);
+        setMapCoords(location.coords);
         return;
       } 
 
-      if (!user?.institution || !currentLoc) {
+      if (!user?.institution || !location) {
         await goToUserLocation();
         return;
       }
@@ -159,10 +159,10 @@ const currentLoc = locations.find((loc) => loc.isCurrent);
         }
       }
 
-      const currentLocation = await Location.getCurrentPositionAsync({});
+      const locationation = await Location.getCurrentPositionAsync({});
       const coords = [
-        currentLocation.coords.longitude,
-        currentLocation.coords.latitude,
+        locationation.coords.longitude,
+        locationation.coords.latitude,
       ];
 
       setMapCoords(coords);
@@ -336,7 +336,7 @@ const currentLoc = locations.find((loc) => loc.isCurrent);
           />
         </View>
 
-        {!(user?.role === "Customer") && (
+        {!(user?.role === "customer") && (
           <View>
             <LocationSideButton
               name="add-location-alt"

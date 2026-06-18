@@ -702,9 +702,9 @@ export const getAllOrders = async (accountId: string) => {
   const authorized = await tablesDB.listRows({
     databaseId: appwriteConfig.databaseId,
     tableId: 'user',
-    queries: [
-      Query.contains('role', ['admin','rider']),
-    ],
+    // queries: [
+    //   Query.contains('role', ['admin','rider']),
+    // ],
   })
 
   if (!riderId) throw new Error('unauthorized access')
@@ -751,17 +751,13 @@ export async function acceptOrder(orderId: string, driverId: string | undefined)
 export const createOrder = async ({
   customerId,
   userAddress,
-  totalAmount,
- 
+  totalKobo,
+  subtotalKobo,
+  deliveryFeeKobo,
+  platformFeeKobo,
   items,
-}: {
-  customerId: string | undefined;
-  userAddress: string;
-  totalAmount: number;
-  items: any[];
-}) => {
+}: Order) => {
   try {
-
 
     const row = await tablesDB.createRow({
       databaseId: appwriteConfig.databaseId,
@@ -770,7 +766,11 @@ export const createOrder = async ({
       data: {
         customerId,
         userAddress,
-        totalAmount,
+        totalKobo: subtotalKobo + deliveryFeeKobo + platformFeeKobo,
+        platformFeeKobo,
+        // platform fee is dependent on subscription level, currently it's 0
+        subtotalKobo,
+        deliveryFeeKobo,
         status: "pending",
         items: JSON.stringify(items), // snapshot of cart at time of order
       },

@@ -34,7 +34,7 @@ const useAuthStore = create<AuthState>()(
     
     try {
       
-
+    
       const user = await getCurrentUser();
       if (user ) set({ isAuthenticated: true, user: user as User});
       else set({ isAuthenticated: false, user: null });

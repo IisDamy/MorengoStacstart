@@ -174,7 +174,7 @@ export default function SignUp() {
         onPress={submit}
         style={`bg-[#57a886] mt-6`}
         isLoading={isSubmitting}
-        disabled={isDisabled}
+
       />
       <View className="mt-6">
         <Text className=" mb-3  font-light  leading-5 tracking-wide mx-auto">

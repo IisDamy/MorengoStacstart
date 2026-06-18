@@ -8,9 +8,11 @@ import { persist, createJSONStorage } from "zustand/middleware";
 type NotificationState = {
  msgs: {
     text:string,
-    type:string
+    type:string,
+    id:string
  }[] | [],
  clearMsgs: () => void;
+ removeMsg: (id: string) => void;
  addMsg: (msg: any) => void;
 
 };
@@ -18,9 +20,19 @@ type NotificationState = {
 const useNotificationStore = create<NotificationState>()(
   persist(
      (set, get) => ({
-    msgs: [{text: 'Order has been delivered', type:'success'},{text:'New order received', type:'info'},{text:'Order has been cancelled', type:'error'}, {text:'Order is out for delivery', type:'warning'}],
+    msgs: [],
     clearMsgs: () => set({ msgs: [] }),
-    addMsg: (msg) => set({ msgs: [...get().msgs, msg] }),
+    addMsg: (msg) => set({ msgs: [...get().msgs, {...msg, id: Date.now().toString()}] }),
+     removeMsg: (id) => {
+        set({
+            msgs: get().msgs.filter(
+                (i) =>
+                    !(
+                        i.id === id 
+                    )
+            ),
+        });
+    },
 
 }),
 {

@@ -9,19 +9,20 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { signOut, updateUser, displayImage } from '@/lib/appwrite'
 import useAuthStore from '@/store/auth.store'
-
+import useNotificationStore from '@/store/notification.store'
 
 const Profile = () => {
   const {user} = useAuthStore()
   const { onScroll } = useTabBarVisibility();
     const [enablePromoNotifs, setEnablePromoNotifs] = useState(true);
     const [enableNotifs, setEnableNotifs] = useState(true);
-
+    const { addMsg, msgs } = useNotificationStore()
 
     const toggleSwitchNotifs = () => setEnableNotifs(previousState => !previousState);
     const toggleSwitchPromo = () => {
       setEnablePromoNotifs(prev => !prev)
-      console.log(image)
+      addMsg({text: 'Order has been delivered', type:'success'})
+      console.log(msgs)
     }
 
   const LogOff = async () => {
@@ -61,7 +62,7 @@ const Profile = () => {
           <Text className='text-xs font-[Nunito-regular] mt-2 w-[50] text-center'>Check points</Text>
         </View>
 
-        <TouchableOpacity className='flex items-center' onPress={()=> user?.role === 'Customer'? Alert.alert('You need be a store owner or morengo rider inorder to access dashboard') : router.push('/Dashboard')}>
+        <TouchableOpacity className='flex items-center' onPress={()=> user?.role === 'customer'? Alert.alert('You need be a store owner or morengo rider inorder to access dashboard') : router.push('/Dashboard')}>
           <View className='rounded-full w-12 h-12 border bg-black'></View>
           <Text className='text-xs font-[Nunito-regular] mt-2 w-[50] text-center'>Open dashboard</Text>
         </TouchableOpacity>

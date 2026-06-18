@@ -32,7 +32,7 @@ const CustomRadio = ({value, onValueChange, title, optiona, optionb, type}:Custo
              color:color.moregreen,
              
          }}
-         >* {title}</Text>
+         >{title}</Text>
   
         <RadioGroup
         options={options}

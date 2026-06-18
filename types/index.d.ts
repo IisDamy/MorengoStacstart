@@ -190,14 +190,15 @@ interface Order extends Models.Document {
 
 interface Location{
     coords:number[],
-    label:string,
-    isCurrent:boolean
+    label:string
 }
 
 interface CoordsStore{
- location:Location,
+ location:Location | {},
  locations: Location[] | [],
  saveLocation: (loc: Location) => void;
+ setCurrentLocation: (loc:Location) => void;
+ deleteLocation: (loc:Location) => void;
 
 }
 
@@ -212,4 +213,24 @@ interface MenuItemDraft {
   price: string
   imageUri: string | null
   imageId: string | null
+}
+
+interface Order {
+customerId:string,
+riderId: string,
+status: string,
+paymentReference?: string,
+paystackRefence?:string,
+deliveredAt?:string,
+setteledAt?: string?,
+settlementBatchId?:string,
+disputeId?:string,
+metadata?: string,
+userAddress: string,
+totalKobo: number,
+subtotalKobo: number,
+deliveryFeeKobo: number,
+platformFeeKobo:number,
+currency: string,
+items: any[],
 }

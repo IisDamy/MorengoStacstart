@@ -1,16 +1,17 @@
 import React from "react";
 import {
-  View,
   Text,
   Dimensions,
   TouchableOpacity,
+  View
 } from "react-native";
 import Animated, {
   SlideInRight,
   SlideOutRight,
+  LinearTransition,
 } from "react-native-reanimated";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import useNotificationStore from '@/store/notification.store';
+import useNotificationStore from "@/store/notification.store";
 import { NotificationViewerProps } from "@/types";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -19,104 +20,109 @@ type NotificationItemProps = {
   msg: any;
   index: number;
   total: number;
-  open: boolean;
-  
+  onRemove: (id: string) => void;
 };
 
 const NotificationItem = ({
   msg,
   index,
   total,
-  open,
+  onRemove,
 }: NotificationItemProps) => {
-  // Opening: top -> bottom
-  const enteringDelay = (index / 2) * 60;
-  
-  // Closing: bottom -> top
-  const exitingDelay = (total - 1 - index) * 40;
+  const enteringDelay = index * 60;
+  const exitingDelay = (total - 1 - index) * 60;
 
   return (
     <Animated.View
+      layout={LinearTransition.springify().damping(20).stiffness(280)}
       entering={SlideInRight
-        .duration(60)
         .delay(enteringDelay)
+        .springify()
+        .damping(15)
+        .stiffness(200)
+        .mass(0.8)
         .withInitialValues({
           transform: [{ translateX: SCREEN_WIDTH }],
         })}
+        
       exiting={SlideOutRight
-        .duration(60)
-        .delay(exitingDelay)}
-      className="w-full opacity-90 bg-white p-4 rounded-lg py-5 shadow-md"
+        .delay(exitingDelay)
+        .duration(120)}
+      className="w-full bg-white opacity-90 rounded-lg p-4 py-5 shadow-md mb-4"
     >
-      <Text
-        className={`font-[Nunito-bold] text-sm mb-1 ${
-          msg.type === "success"
-            ? "text-green-500"
-            : msg.type === "error"
-            ? "text-red-500"
-            : "text-yellow-500"
-        }`}
-      >
-        {msg.type}
-      </Text>
+      {/* Header row: type label + cancel button */}
+      <View className="flex-row items-center justify-between mb-1">
+        <Text
+          className={`font-[Nunito-bold] text-sm ${
+            msg.type === "success"
+              ? "text-green-500"
+              : msg.type === "error"
+              ? "text-red-500"
+              : "text-yellow-500"
+          }`}
+        >
+          {msg.type}
+        </Text>
 
-      <Text className="font-[Nunito-regular]">
-        {msg.text}
-      </Text>
+        <TouchableOpacity
+          onPress={() => onRemove(msg.id)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          className="ml-2"
+        >
+          <MaterialIcons name="close" color="#a1a1aa" size={16} />
+        </TouchableOpacity>
+      </View>
+
+      <Text className="font-[Nunito-regular]">{msg.text}</Text>
     </Animated.View>
   );
 };
 
-
-
-
-
 const NotificationViewer = ({
-
   open,
-  onClose
+  onClose,
 }: NotificationViewerProps) => {
-  const { msgs, clearMsgs } = useNotificationStore();
-
-
+  const { msgs, clearMsgs, removeMsg } = useNotificationStore();
 
   return (
     <Animated.View
-      className={`absolute items-center top-10 right-0 w-64 gap-4 p-4 h-[50%] overflow-hidden ${
+      className={`absolute top-10 right-0 w-64  overflow-hidden  p-4 ${
         !open ? "pointer-events-none" : ""
       }`}
     >
-      {msgs.length === 0 ? (
-        open && (
-          <Text className="font-[Nunito-regular] ml-auto text-sm text-zinc-200">
-            No notifications
-          </Text>
-        )
-      ) : (
-        msgs.map((msg, index) =>
-          open ? (
-            <NotificationItem
-              key={`${index}-${msg.text}`}
-              msg={msg}
-              index={index}
-              total={msgs.length}
-              open={open}
-            />
-          ) : null
-        )
-      )}
 
-      {
-      (open && msgs.length > 0) && (
-        <TouchableOpacity onPress={() => {
-          clearMsgs()
-          onClose()
-          }}>
-          <MaterialIcons
-            name="close"
-            color={"red"}
-            size={26}
-          />
+      {open && <Animated.View
+       className="max-h-[400] overflow-hidden"
+      //  layout={LinearTransition.springify().damping(20).stiffness(280)}
+       >
+            {msgs.map((msg, index) =>
+              open && (
+                <NotificationItem
+                  key={msg.id}
+                  msg={msg}
+                  index={index}
+                  total={msgs.length}
+                  onRemove={removeMsg}
+                />
+              ) 
+            )}
+            </Animated.View>}
+         
+  
+
+      {open && msgs.length > 0 && (
+        <TouchableOpacity
+          className="items-center justify-between flex-row mt-3"
+          onPress={() => {
+            onClose();
+            clearMsgs();
+          }}
+        >
+          <View className="w-1/3 h-[1px] bg-zinc-500" />
+          <Text className="font-[Nunito-semiBold] text-xl text-red-600 tracking-widest">
+            clear
+          </Text>
+          <View className="w-1/3 h-[1px] bg-zinc-500" />
         </TouchableOpacity>
       )}
     </Animated.View>

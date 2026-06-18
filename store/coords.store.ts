@@ -9,7 +9,7 @@ persist(
     (set, get) => ({
         locations: [],
 
-        location: {coords:[], label:'', isCurrent:false},
+        location: {},
 
        saveLocation: (loc: Location) => {
         const exists = get().locations.some(
@@ -34,13 +34,10 @@ persist(
                 : item
             ),
           });
-        } else {
-            set({
-              locations: get().locations.map((oloc) => {return {...oloc, isCurrent:false}}) 
-            });
-
+        } 
+        else {
           set({
-            locations: [...get().locations, {...loc, isCurrent:true}],
+            locations: [...get().locations, loc],
           });
         }
 
@@ -48,9 +45,20 @@ persist(
         
       },
 
-      deleteLocation: (loc:Location) =>{
-        set({locations: [...get().locations.filter(loc => !loc)]})
-      }
+      setCurrentLocation: (loc:Location) => {
+        set({
+          location: loc})},
+
+   deleteLocation: (loc: Location) => {
+  set({
+    locations: get().locations.filter(
+      item =>
+        item.label !== loc.label ||
+        item.coords[0] !== loc.coords[0] ||
+        item.coords[1] !== loc.coords[1]
+    ),
+  });
+},
 
     })
     ,

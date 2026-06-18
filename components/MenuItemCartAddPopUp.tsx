@@ -14,6 +14,7 @@ import {
 import CustomInput from "./CustomInput";
 import PopUpWrapper from "./PopUpWrapper";
 import CustomButton from "./ui/CustomButton";
+import { color } from "@/constants";
 
 interface SelectedItem {
   name: string;
@@ -121,16 +122,16 @@ const MenuItemCartAddPopUp: React.FC<MenuItemCartAddPopUpProps> = ({
       </View>
 
       <View className="flex-row justify-between py-4 items-center border-zinc-100 border-b w-full">
-        <Text>Quantity</Text>
+        <Text className="font-[Nunito-semiBold]">Quantity</Text>
         <View className="py-2 w-[100] items-center justify-around flex-row">
           <TouchableOpacity
             onPress={() => setQty((prev) => (prev > 1 ? prev - 1 : prev))}
           >
-            <MaterialIcons name="remove-circle" size={24} color={"green"} />
+            <MaterialIcons name="remove-circle" size={24} color={color.moregreen} />
           </TouchableOpacity>
           <Text className="font-[Nunito-bold]">{qty}</Text>
           <TouchableOpacity onPress={() => setQty((prev) => prev + 1)}>
-            <MaterialIcons name="add-circle" size={24} color={"green"} />
+            <MaterialIcons name="add-circle" size={24} color={color.moregreen} />
           </TouchableOpacity>
         </View>
       </View>
@@ -140,7 +141,7 @@ const MenuItemCartAddPopUp: React.FC<MenuItemCartAddPopUpProps> = ({
           className="flex-row gap-2 mb-2 items-center"
           onPress={() => toggleOpenSides(!openSides)}
         >
-          <MaterialIcons name="add-circle" size={24} color={"gold"} />
+          <MaterialIcons name="add-circle" size={24} color={color.moregreen} />
           <Text className="font-[Nunito-regular]">Add sides and beverages</Text>
         </TouchableOpacity>
 
@@ -154,10 +155,15 @@ const MenuItemCartAddPopUp: React.FC<MenuItemCartAddPopUpProps> = ({
               return (
                 <TouchableOpacity
                   key={option.$id}
-                  className={`p-2 rounded border w-fit h-fit ${selected ? "border-green-400 bg-green-50" : ""}`}
+                  className={`p-2 rounded-full min-w-12 border w-fit h-fit ${selected ? 'border-green-400 bg-green-50' :''}`}
+                  style={!selected?{ borderColor: '#F97316'}:{}}
+
                   onPress={() => handleModifierPress(option)}
                 >
-                  <Text className="font-[Nunito-regular]">
+                  <Text className="font-[Nunito-regular] text-center text-[12px] text-orange-300"
+                  style={{color: selected ? color.moregreen : '#F97316'}}
+                  
+                  >
                     {option.name}
                     {selected ? ` (${selected.qty})` : ""}
                   </Text>
@@ -172,7 +178,7 @@ const MenuItemCartAddPopUp: React.FC<MenuItemCartAddPopUpProps> = ({
         className="flex-row gap-2 items-center py-4"
         onPress={() => toggleAddSpecialInstructions((prev) => !prev)}
       >
-        <MaterialIcons name="add-circle" size={24} color={"gold"} />
+        <MaterialIcons name="add-circle" size={24} color={color.moregreen} />
         <Text className="font-[Nunito-regular]">Add special instructions</Text>
       </TouchableOpacity>
       {addSpecialInstructions && (

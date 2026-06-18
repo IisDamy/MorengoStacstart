@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   View,
   Image,
-  ImageBackground,
 } from "react-native";
 import Animated from "react-native-reanimated";
 import { router } from "expo-router";
@@ -53,7 +52,7 @@ export default function Index() {
         {/* HEADER */}
         <View
           className="header flex justify-center pt-[60]
-          px-[148] overflow-hidden items-center
+          px-[142] overflow-hidden items-center
           self-center h-[360] w-[170%]
           rounded-[130%]"
           style={{
@@ -112,7 +111,7 @@ export default function Index() {
 
             {/* logo */}
             <Text
-              className="text-xl relative  bottom-[7]"
+              className="text-xl relative   bottom-[7]"
               style={{
                 fontFamily: "Crispy",
                 color: color.morange,
