@@ -7,6 +7,9 @@
     "icon": "./assets/images/icon.png",
     "scheme": "appwrite-callback-696acfc00004ad2c375b",
     "userInterfaceStyle": "automatic",
+     "assetBundlePatterns": [
+      "**/*"
+    ],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true

@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import Animated from "react-native-reanimated";
 import { router } from "expo-router";
-import GridAnim from "@/components/BotttomGridMain";
+import Widgets from "@/components/Widgets";
 import { TextInput } from "react-native-gesture-handler";
 import useAuthStore from "@/store/auth.store";
 
@@ -180,7 +180,7 @@ export default function Index() {
           <MenuFavouritePanel seeAll={seeAll} />
 
           {/* grid */}
-          <GridAnim />
+          <Widgets />
         </View>
         <NotificationViewer  open={openNotifications} onClose={() => toggleOpenNotifictions(false)} />
       </Animated.ScrollView>

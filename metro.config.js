@@ -1,8 +1,9 @@
 const { withNativeWind } = require('nativewind/metro');
-const {
-  getSentryExpoConfig
-} = require("@sentry/react-native/metro");
- 
-const config = getSentryExpoConfig( __dirname)
+const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 
-module.exports = withNativeWind(config, { input: './app/globals.css' })
+const config = getSentryExpoConfig(__dirname);
+
+config.resolver.assetExts.push('mp4'); 
+
+
+module.exports = withNativeWind(config, { input: './app/globals.css' });

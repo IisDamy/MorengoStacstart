@@ -37,4 +37,9 @@ export function nairaToKobo(naira: number) {
   return Math.round(naira * 100);
 }
 
-
+export const calcPlatformFee = (fee: number) => {
+  const paystackChargeA = fee <= 5000? 10: fee > 50000?50 : 25
+  const paystackChargeB = fee < 2500? 0:100
+  
+  return Math.round(((2*paystackChargeA) + ((1.5/100) * fee) + paystackChargeB))
+}

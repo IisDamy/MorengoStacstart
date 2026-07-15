@@ -57,7 +57,7 @@ import cartoonArrow from '@/assets/images/cartoon-arrow.png'
 import allsorts from '@/assets/images/allsorts.png';
 import fastDelivery from '@/assets/icons/fast-delivery.png'
 import maskRectangle from '@/assets/images/mask-rectangle.png'
-import connectingRider from '@/assets/animations/connecting-rider.mp4'
+import connectingRider from '@/assets/videos/connecting-rider.mp4'
 
 export const CATEGORIES = [
     {

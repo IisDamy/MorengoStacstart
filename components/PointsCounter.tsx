@@ -20,7 +20,7 @@ interface PointsIconProps {
 }
 
 const PointsIcon: React.FC<PointsIconProps> = ({ points = 0 }) => {
-  const clampedPoints = Math.min(50, Math.max(0, points));
+  const clampedPoints = Math.min(500, Math.max(0, points));
   
   const pointsRef = useRef(clampedPoints);
 
@@ -30,15 +30,15 @@ const PointsIcon: React.FC<PointsIconProps> = ({ points = 0 }) => {
 
   // Shared values
   const fillerHeight = useSharedValue(
-    clampedPoints < 50 ? (clampedPoints / 50) * 24 : 0
+    clampedPoints < 500 ? (clampedPoints / 500) * 50 : 0
   );
 
   const borderColor = useSharedValue(
-    clampedPoints === 50 ? color.morange : 'gold'
+    clampedPoints === 500 ? color.morange : 'gold'
   );
 
   const iconColor = useSharedValue(
-    clampedPoints === 50 ? color.morange : 'gold'
+    clampedPoints === 500 ? color.morange : 'gold'
   );
 
   const iconScale = useSharedValue(1);
@@ -82,7 +82,7 @@ const togglePoints = () => {
   useEffect(() => {
     const current = clampedPoints;
 
-    if (current < 50) {
+    if (current < 500) {
       fillerHeight.value = withTiming((current / 50) * 24, {
         duration: 200,
       });
@@ -92,7 +92,7 @@ const togglePoints = () => {
       iconScale.value = withTiming(1, { duration: 200 });
     } else {
       fillerHeight.value = withTiming(0, { duration: 200 }, (finished) => {
-        if (finished && pointsRef.current === 50) {
+        if (finished && pointsRef.current === 500) {
           borderColor.value = withTiming(color.morange, {
             duration: 200,
           });

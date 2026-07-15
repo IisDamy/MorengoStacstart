@@ -3,7 +3,7 @@ import { createOrder } from '@/lib/appwrite'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { color } from '@/constants'
 import { useCartStore } from '@/store/cart.auth.store'
-import { buildOrderString, formatNaira, nairaToKobo } from '@/constants/utils'
+import { buildOrderString, formatNaira, nairaToKobo, calcPlatformFee } from '@/constants/utils'
 import {TabsHeader} from '@/components'
 import useAuthStore from '@/store/auth.store'
 import { getUserAddresses } from '@/lib/appwrite'
@@ -15,6 +15,7 @@ import LocationSelectorModal from '@/components/LocationSelectorModal';
 import {CustomInput} from '@/components'
 
 
+
 const cart = () => {
 const { user} = useAuthStore()
   const { items, increaseQty, decreaseQty, getTotalPrice, clearCart} = useCartStore()
@@ -22,19 +23,17 @@ const { user} = useAuthStore()
   const [defaultAddress, setDefaultAddress] = useState(null)
   const { locations, location } = useCordsStore();
   const [changeLocation, toggleChangeLocation] = useState(false)
+  const [discount, setDiscount] = useState(0)
 
 
   // based on how mny vendora youre ordering from and if they're off or not
-  const deliveryPrices = 300
-
   const itemTotal = getTotalPrice()
-  
 
-
-
-
-
-
+  useEffect(()=>{
+    let discountAmount = 0.15 * itemTotal
+    const notGoingBroke = discountAmount > 400? 0: discountAmount
+    setDiscount(user?.points === 500? notGoingBroke: 0)
+  },[user?.points])
 
 const checkout = async () => {
   if (loading) return; // 🔥 prevent duplicate calls
@@ -44,17 +43,13 @@ const checkout = async () => {
     const res = await createOrder({
       customerId: user?.$id,
       items,
-      deliveryFeeKobo:nairaToKobo(300),
-      // we'll change delivery fee logic later, i'm think 300 for a vendor, 2-3 vendors 500, off k 1k, subscription is best, we increment costs with platform fee
-      platformFeeKobo:nairaToKobo(50),
-      subtotalKobo: nairaToKobo(itemTotal),
+      subtotal: itemTotal,
       // time: watTime,
       userAddress: JSON.stringify({location:location.coords, description:''}),
     });
 
     console.log(res)
     if (!res) throw new Error('Failed to create order');
-
     clearCart();
   } catch (e) {
     console.error(e);
@@ -124,20 +119,24 @@ const checkout = async () => {
         {/* change color of border to softer */}
         <View className=' px-6  items-center'>
         <View className='px-6 border-t border-zinc-100 '>
-            <View className='flex my-2 gap-1'>
+            <View className='flex my-2 gap-2'>
               <View className='flex-row  w-full justify-between'>
                 <Text className='text-md font-[Nunito-bold]'>Item Total</Text>
                 <Text className='text-md font-[Nunito-bold]'>{itemTotal}</Text>
               </View>
               
               <View className='flex-row justify-between '>
-                <Text className='text-md font-[Nunito-regular]'>Discount</Text>
-                <Text className='text-md font-[Nunito-regular]'>0</Text>
+                <Text className='text-md font-[Nunito-regular] text-sm'>Discount</Text>
+                <Text className='text-md font-[Nunito-regular] text-sm'>{discount}</Text>
               </View>
-              <View className='flex-row justify-between '>
+              {/* <View className='flex-row justify-between '>
                 <Text className='text-md'>Delivery Fee</Text>
-                <Text className='text-md'>500</Text>
+                <Text className='text-md'>_</Text>
               </View>
+                <View className='flex-row justify-between '>
+                <Text className='text-md'>Platform Fee</Text>
+                <Text className='text-md'>_</Text>
+              </View> */}
             </View>
             
             <View className='flex-row mt-2 py-4 border-b border-zinc-300 border-t w-full justify-between'>
@@ -151,7 +150,7 @@ const checkout = async () => {
                   color:color.moregreen
                 }}
               >
-                {formatNaira(getTotalPrice() + deliveryPrices)}
+                {formatNaira(itemTotal)}
               </Text>
             </View>
         </View>

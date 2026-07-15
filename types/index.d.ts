@@ -11,6 +11,8 @@ export interface MenuItem extends Models.Document {
     
 }
 
+declare module '*.mp4'
+declare module '*.png, *.jpeg'
 
 export interface Category extends Models.Document {
     name: string;
@@ -227,10 +229,10 @@ settlementBatchId?:string,
 disputeId?:string,
 metadata?: string,
 userAddress: string,
-totalKobo: number,
-subtotalKobo: number,
-deliveryFeeKobo: number,
-platformFeeKobo:number,
+total: number,
+subtotal: number,
+deliveryFee: number,
+platformFee:number,
 currency: string,
 items: any[],
 }

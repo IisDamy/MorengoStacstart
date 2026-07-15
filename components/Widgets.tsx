@@ -30,7 +30,7 @@ const DEFAULT = 160;
 const RADIUS = 15;
 const FULL_RADIUS = 999;
 
-export default function GridAnim() {
+export default function Widgets() {
   const active = useSharedValue<null | number>(null);
 
   const holdTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -235,14 +235,18 @@ export default function GridAnim() {
           ]}
         >
           {/* text */}
-          <Animated.Text
-            entering={SlideInDown.springify()
-              .damping(24)
-              .stiffness(110)}
-            style={
-              styles.descriptionText
-            }
-          >
+        <Animated.Text
+  entering={
+    FadeIn.springify()
+      .damping(24)
+      .stiffness(110)
+      .withInitialValues({
+        opacity: 0,
+        transform: [{ scale: 0.6 }],
+      })
+  }
+  style={styles.descriptionText}
+>
             {text}
           </Animated.Text>
         </Animated.View>

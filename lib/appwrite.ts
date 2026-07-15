@@ -13,9 +13,11 @@ import {
   OAuthProvider,
   Query,
   TablesDB,
+  Functions
 } from "react-native-appwrite";
 import useAuthStore from "@/store/auth.store";
 import User from '@/types'
+import { nairaToKobo } from "@/constants/utils";
 
 // # dont forget to delete this and add complete eas build for secrets before launch
 // # use eas secret:list to get already created secrets
@@ -34,6 +36,7 @@ export const appwriteConfig = {
   projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT || '',
   databaseId: "69736bf7000636aa3743",
   bucketId:"69dfa5e5000d8cf8677f",
+  functionId: "6a3d43d6000f11832aab",
   userCollectionId: "user",
   cartCollectionId: "",
   vendorsCollectionId: "",
@@ -58,6 +61,7 @@ export const databases = new Databases(client);
 export const tablesDB = new TablesDB(client);
 export const storage = new Storage(client);
 export const messaging = new Messaging(client);
+export const functions = new Functions(client)
 
 export const createUser = async ({
   email,
@@ -751,14 +755,11 @@ export async function acceptOrder(orderId: string, driverId: string | undefined)
 export const createOrder = async ({
   customerId,
   userAddress,
-  totalKobo,
-  subtotalKobo,
-  deliveryFeeKobo,
-  platformFeeKobo,
+  subtotal,
   items,
 }: Order) => {
   try {
-
+  
     const row = await tablesDB.createRow({
       databaseId: appwriteConfig.databaseId,
       tableId:'orders',
@@ -766,11 +767,8 @@ export const createOrder = async ({
       data: {
         customerId,
         userAddress,
-        totalKobo: subtotalKobo + deliveryFeeKobo + platformFeeKobo,
-        platformFeeKobo,
         // platform fee is dependent on subscription level, currently it's 0
-        subtotalKobo,
-        deliveryFeeKobo,
+        subtotal,
         status: "pending",
         items: JSON.stringify(items), // snapshot of cart at time of order
       },
@@ -782,7 +780,13 @@ export const createOrder = async ({
   }
 };
 
-
+export const getAdditionalFee = async () => {
+  const fee = await tablesDB.listRows({
+    databaseId:appwriteConfig.databaseId,
+    tableId:'additionalFee', 
+  })
+  return fee.rows[0].rate
+}
 
 export function subscribeToOrders(
   onOrderUpdate: (order: any) => void,
@@ -814,5 +818,24 @@ export function subscribeToOrders(
   );
 
   return unsubscribe;
+}
+
+
+
+export const RunPaystackAction = async (action:string, body:any) => {
+ try{
+  const execution = await functions.createExecution({
+    functionId:appwriteConfig.functionId,
+    body: JSON.stringify({
+    'action': action,
+    ...body
+    }),
+  })
+
+  return JSON.parse(execution.responseBody)
+ }
+ catch(e){
+  console.error(e)
+ }
 }
 

@@ -5,30 +5,35 @@ import { color, images } from '@/constants'
 import { TabsHeader } from '@/components'
 import { deleteOrder, fetchOrders } from '@/lib/appwrite'
 import useAuthStore from '@/store/auth.store'
-import { Order } from '@/types'
+import { Order, User } from '@/types'
 import { useCartStore } from '@/store/cart.auth.store'
 import { subscribeToOrders } from '@/lib/appwrite'
+import { router } from 'expo-router'
 import Animated, {
   FadeInDown,
   ZoomIn,
 } from 'react-native-reanimated'
 import {  GestureHandlerRootView } from 'react-native-gesture-handler'
 import useNotificationStore from '@/store/notification.store'
-import SwipeToCancel from '@/components/SwipeToCancel'
+import {CustomButton} from '@/components'
 import ConnectRiderCard from '@/components/ConnectRiderCard'
+import { RunPaystackAction } from '@/lib/appwrite'
 
-const OrderCard =({order, handleCancel, openCancelPending, setOpenCancelPending}) =>  {
+ interface OrderCard{
+  order:Order;
+  handleCancel: (itemId:string) => void;
+  removeItemId:string | null;
+  handleItemRemove: (itemId:string | null) => void;
+  user:User | null
 
-  (<SwipeToCancel key={order.$id} onSwipe={() => handleCancel(order.$id)}>
+}
 
-                  <Pressable
-                    onPress={() => setOpenCancelPending(null)}
-                    onLongPress={() =>
-                      setOpenCancelPending(openCancelPending === order.$id ? null : order.$id)
-                    }
-                    delayLongPress={300}
-                  >
-                    <View className='mt-4 w-full border-b p-1 border-zinc-300'>
+
+
+const OrderCard =({order, handleCancel, removeItemId, handleItemRemove, user}:OrderCard) =>  {
+
+  return (      
+                    <View className='mt-4 w-full  p-1 '>
                       {/* User name + time */}
                       <View className='flex-row justify-between mb-2'>
                         <Text className='text-[13px] font-[Nunito-bold] text-zinc-700'>{user?.name} {order.status}</Text>
@@ -67,7 +72,7 @@ const OrderCard =({order, handleCancel, openCancelPending, setOpenCancelPending}
                       ))}
 
                       {/* Long-press cancel button */}
-                      {openCancelPending === order.$id && (
+                      {/* {removeItemId === order.$id && (
                         <Animated.View
                           entering={FadeInDown.springify().damping(12).stiffness(180).mass(0.7)}
                           
@@ -76,23 +81,13 @@ const OrderCard =({order, handleCancel, openCancelPending, setOpenCancelPending}
                           <Animated.View
                             entering={ZoomIn.springify().damping(18).stiffness(120).mass(0.8)}
                           >
-                            <Pressable
-                              onPress={() => handleCancel(order.$id)}
-                              style={({ pressed }) => ({
-                                transform: [{ scale: pressed ? 0.96 : 1 }],
-                              })}
-                              className='bg-red-500 rounded-[8] py-3 items-center'
-                            >
-                              <Text className='text-white tracking-wide text-md font-[Nunito-bold]'>
-                                Cancel
-                              </Text>
-                            </Pressable>
+                      
                           </Animated.View>
                         </Animated.View>
-                      )}
+                      )} */}
                     </View>
-                  </Pressable>
-                </SwipeToCancel>
+                 
+              
 )}
 
 const orders = () => {
@@ -103,8 +98,12 @@ const orders = () => {
   const [loading, setLoading] = useState(true)
   const { items } = useCartStore()
   const [orders, setOrders] = useState<Order[]>([])
-  const [openCancelPending, setOpenCancelPending] = useState<string | null>(null)
+  const [removeItemId, setRemoveItemId] = useState<string | null>(null)
 
+
+    const handleItemRemove = (orderId:string) => {
+        setRemoveItemId(orderId)
+    }
 
       const handleCancel = (orderId: string) => {
     Alert.alert('Cancel Order', 'Are you sure you want to cancel this order?', [
@@ -116,7 +115,7 @@ const orders = () => {
           try {
             await deleteOrder(orderId)
             setOrders((prev) => prev.filter((o) => o.$id !== orderId))
-            setOpenCancelPending(null)
+            setRemoveItemId(null)
           } catch (e) {
             console.error('Cancel order error:', e)
             addMsg({ text: 'Failed to cancel order', type: 'error' })
@@ -169,7 +168,7 @@ const orders = () => {
 
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+ 
       <SafeAreaView className='h-full w-full items-center bg-white pb-10'>
         <View className='h-full w-full bg-white flex px-6 items-center'>
           <TabsHeader tabName='Orders' />
@@ -201,19 +200,52 @@ const orders = () => {
               {/* <View className='h-56 w-64 border  rounded-2xl mt-8 self-center'
                 
               >
-               
-              </View> */}
-             
+              </View> */}    
               <ConnectRiderCard />
+                {/* only for orders */}
+                <View className=' scale-[0.7] w-[90%] bg-white self-center relative bottom-20 border-zinc-300 max-h-[400] overflow-hidden rounded-[15] border-[2px] mt-0'>
+                  {/* replace map with flatlist and filter based on status */}
+         
+              </View>
 
-              {/* {orders.map((order) => (
-                <View></View>
-              ))} */}
+              <View>
+                {orders.map((order) => (
+                  <>
+                  <OrderCard 
+                  handleCancel={handleCancel}
+                  user={user} 
+                  order={order} 
+                  removeItemId={removeItemId} 
+                  handleItemRemove={(order) => setRemoveItemId(order)}
+                  />
+                  <View className='flex-row w-full '>  
+                    <CustomButton title='Make Payment' style={'bg-green-500 w-full'}  onPress={async ()=> {
+                      const pay = await RunPaystackAction('payment.initialize',{
+                      customerId: user.$id,
+                      riderId:'6a24425a00118d361658',
+                      items:order.items,
+                      total:1000,
+                      orderId:order.$id,
+                      customerEmail: user?.email
+                    })
+
+                    console.log(pay)
+                  
+                  }
+                    
+                    }/>
+                    <CustomButton onPress={() => handleCancel(order.$id)} title='cancel' style={'bg-red-600 w-full'}/>     
+                    </View> 
+                  </>
+               
+              ))}
+              </View>
+              {/* make payment section for orders that have connected */}
             </ScrollView>
           )}
         </View>
       </SafeAreaView>
-    </GestureHandlerRootView>
+
   )
 }
 
