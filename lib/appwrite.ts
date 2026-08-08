@@ -17,7 +17,8 @@ import {
 } from "react-native-appwrite";
 import useAuthStore from "@/store/auth.store";
 import User from '@/types'
-import { nairaToKobo } from "@/constants/utils";
+import { calcPlatformFee, nairaToKobo } from "@/constants/utils";
+import { Q } from "@nozbe/watermelondb";
 
 // # dont forget to delete this and add complete eas build for secrets before launch
 // # use eas secret:list to get already created secrets
@@ -196,7 +197,6 @@ export const signOut = async () => {
 
 export const getCurrentUser = async () => {
   try {
-    console.log("Appwrite endpoint:", appwriteConfig.endpoint);
     const currentAccount = await account.get();
     
     if (!currentAccount) throw Error;
@@ -701,23 +701,17 @@ export const fetchOrders = async (accountId: string): Promise<Order[]> => {
   }))
 }
 
+// live in api not here, as well as accept order
+export const getAllCustomersOrders = async (status:string) => {
 
-export const getAllOrders = async (accountId: string) => {
-  const authorized = await tablesDB.listRows({
-    databaseId: appwriteConfig.databaseId,
-    tableId: 'user',
-    // queries: [
-    //   Query.contains('role', ['admin','rider']),
-    // ],
-  })
-
-  if (!riderId) throw new Error('unauthorized access')
+ 
+  if (user.role !== 'rider' || user.role !== 'admin') throw new Error('unauthorized access')
     const res = await tablesDB.listRows({
     databaseId: appwriteConfig.databaseId,
-    tableId: 'orders'
+    tableId: 'orders',
+    queries:[ Query.equal('status',status)]
   })
-  if (!res) return false
-
+ 
   return res.rows.map((row: any) => ({
     ...row,
     items: JSON.parse(row.items),
@@ -732,31 +726,76 @@ export const deleteOrder = async (rowId: string) => {
   })
 }
 
-export async function acceptOrder(orderId: string, driverId: string | undefined) {
- try{
-   const res = await tablesDB.updateRow(
-    {
-      databaseId: appwriteConfig.databaseId, 
-     tableId: 'orders',
-     rowId: orderId, 
-     data:{
-    status: 'accepted',
-    deliveryPersonId: driverId
-  }
-  
-  
-  });
-  if (!res) throw new Error('Failed to accept order')
- }
- catch(e){
-  console.error(e)
- }
+// 
+
+export async function confirmDeliveryOffer({
+  orderId,
+  riderId,
+  riderName,
+  deliveryFee,
+}: {
+  orderId: string
+  riderId: string
+  riderName: string
+  deliveryFee: number
+}) {
+  const user = await getCurrentUser()
+
+  const order = await tablesDB.getRow({
+    databaseId: appwriteConfig.databaseId,
+    tableId: 'orders',
+    rowId: orderId,
+  })
+
+  // only the customer who owns this order can confirm a rider
+  if (order.customerId !== user.$id) throw new Error('unauthorized access')
+  if (order.status !== 'pending') throw new Error('Order already has a rider')
+
+  const platformFee = calcPlatformFee(order.subtotal + deliveryFee)
+  const total = platformFee + order.subtotal + deliveryFee
+
+  const updated = await tablesDB.updateRow({
+    databaseId: appwriteConfig.databaseId,
+    tableId: 'orders',
+    rowId: orderId,
+    data: {
+      status: 'accepted',
+      deliveryFee,
+      platformFee,
+      total,
+      riderId,
+      riderName,
+    },
+  })
+
+  // clean up the other offers for this order — they're no longer relevant
+  const offers = await tablesDB.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: 'delivery',
+    queries: [Query.equal('orderId', orderId)],
+  })
+
+  await Promise.all(
+    offers.rows.map((row) =>
+      tablesDB.deleteRow({
+        databaseId: appwriteConfig.databaseId,
+        tableId: 'delivery',
+        rowId: row.$id,
+      })
+    )
+  )
+
+  return updated
 }
+
+
+
 export const createOrder = async ({
   customerId,
   userAddress,
   subtotal,
   items,
+  customerName
 }: Order) => {
   try {
   
@@ -767,10 +806,11 @@ export const createOrder = async ({
       data: {
         customerId,
         userAddress,
+        customerName,
         // platform fee is dependent on subscription level, currently it's 0
         subtotal,
         status: "pending",
-        items: JSON.stringify(items), // snapshot of cart at time of order
+        items: JSON.stringify(items)
       },
     });
 
@@ -788,36 +828,42 @@ export const getAdditionalFee = async () => {
   return fee.rows[0].rate
 }
 
+
 export function subscribeToOrders(
   onOrderUpdate: (order: any) => void,
-  currentUserId: string 
+  onDeliveryUpdate: (delivery: any) => void,
+  currentUserId: string,
+
 ) {
-  console.log('Subscribing to order updates...');
-
   const unsubscribe = client.subscribe(
-    `databases.${appwriteConfig.databaseId}.collections.orders.documents`,
+    [
+      `databases.${appwriteConfig.databaseId}.collections.orders.documents`,
+      `databases.${appwriteConfig.databaseId}.collections.delivery.documents`,
+    ],
     (response) => {
-      console.log('Realtime event:', response.events);
+      const isRelevant = response.events.some(
+        (e) => e.includes('.update') || e.includes('.create') || e.includes('.delete')
+      )
+      if (!isRelevant) return
 
+      const isOrderEvent = response.events.some((e) => e.includes('.collections.orders.'))
+      const isDeliveryEvent = response.events.some((e) => e.includes('.collections.delivery.'))
 
-      const isUpdated = response.events.some(event =>
-        event.includes('.update')
-      );
-
-      if (isUpdated) {
-        console.log('updated')
-        const updatedOrder ={
-          ...response.payload,
-          items: JSON.parse(response.payload.items)
-        };
-        if (updatedOrder?.customerId !== currentUserId) return; // add this guard
-        onOrderUpdate(updatedOrder);
+      if (isOrderEvent) {
+        const updatedOrder = { ...response.payload, items: JSON.parse(response.payload.items) }
+        const isOwner = updatedOrder?.customerId === currentUserId || updatedOrder?.riderId === currentUserId
+        
+        if (!isOwner) return
+        onOrderUpdate(updatedOrder)
       }
 
+      if (isDeliveryEvent) {
+        onDeliveryUpdate(response.payload)
+      }
     }
-  );
+  )
 
-  return unsubscribe;
+  return unsubscribe
 }
 
 
@@ -839,3 +885,47 @@ export const RunPaystackAction = async (action:string, body:any) => {
  }
 }
 
+export const createDeliveryOffer = async ({
+  orderId,
+  riderId,
+  riderName,
+  deliveryFee
+}:{
+  orderId:string,
+  riderId:string,
+  riderName:string,
+  deliveryFee:number
+}) => {
+  try {
+    await tablesDB.createRow({
+      databaseId:appwriteConfig.databaseId,
+      tableId:'delivery',
+      rowId: ID.unique(),
+      data: {
+        riderId,
+        orderId,
+        riderName,
+        deliveryFee
+      }
+    })
+  }
+  catch(e){
+    console.error(e)
+  }
+}
+
+
+export const getDeliveryOffers = async (orderId:string) => {
+  try {
+    const charges = await tablesDB.listRows({
+      databaseId:appwriteConfig.databaseId,
+      tableId:'delivery',
+      queries:[Query.equal('orderId', orderId)]
+    })
+
+    return charges.rows
+  }
+  catch(e){
+    console.error(e)
+  }
+}

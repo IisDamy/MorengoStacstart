@@ -133,7 +133,9 @@ interface CustomInputProps {
     keyboardType?: "default" | "email-address" | "numeric" | "phone-pad";
     autoFocus?:false,
     style?:string,
-    multiline:boolean
+    multiline:boolean,
+    plain?: boolean; // no background / border — just the text
+    fill?: boolean; // grow to fill whatever space its parent gives it
 }
 
 interface ProfileFieldProps {
@@ -188,11 +190,13 @@ interface Order extends Models.Document {
   status: string;
   items: OrderItem[];
   time: string;
+  paidAt?:string;
 }
 
 interface Location{
     coords:number[],
-    label:string
+    label?:string,
+    description:string
 }
 
 interface CoordsStore{
@@ -220,6 +224,8 @@ interface MenuItemDraft {
 interface Order {
 customerId:string,
 riderId: string,
+customerName:string,
+riderName:string,
 status: string,
 paymentReference?: string,
 paystackRefence?:string,

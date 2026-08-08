@@ -14,6 +14,7 @@ type Props = {
   locations: {
     coords: number[];
     label: string;
+    description: string;
   }[];
   selected: string | null;
   onSelect: (label: string) => void;
@@ -50,7 +51,7 @@ const LocationSelectorModal = ({
         onPress={onClose}
         className="flex-1 bg-black/40 justify-end"
       >
-        <View className="bg-white rounded-t-3xl px-5 pt-5 pb-14">
+        <View className=" rounded-t-3xl px-5 pt-5 pb-14">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-[17px] font-[Nunito-bold] text-zinc-800">
               Choose location
@@ -65,11 +66,12 @@ const LocationSelectorModal = ({
             </TouchableOpacity>
           </View>
 
-          {locations.map((loc) => {
+          { 
+            locations.map((loc) => {
             const isActive = selected === loc.label;
 
             return (
-              <TouchableOpacity
+              loc.coords && <TouchableOpacity
                 key={loc.label}
                 onPress={() => {
                   onSelect(loc.label);
@@ -105,7 +107,7 @@ const LocationSelectorModal = ({
                   }`}
                   numberOfLines={1}
                 >
-                  {loc.label}
+                  {loc.label || loc.description}
                 </Text>
 
                 {isActive && (

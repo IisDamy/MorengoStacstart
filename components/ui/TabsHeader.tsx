@@ -11,7 +11,7 @@ interface TabsHeaderProps{
 
 const TabsHeader = ({tabName}:TabsHeaderProps) => {
   return (
-     <View className='w-full  pb-4  items-center flex-row mt-2 px-2 justify-between '>
+     <View className='w-full   pb-4  items-center flex-row mt-2 px-2 justify-between '>
               
                 {/* view should show slight tint color when clicked, pressable effect */}      
         <Text className=' self-center  text-lg tracking-wider'

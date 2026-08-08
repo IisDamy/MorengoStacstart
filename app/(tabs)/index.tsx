@@ -102,10 +102,7 @@ export default function Index() {
 
               <View className="mr-2 flex-row gap-8 items-center">
                 <PointsIcon points={user?.points || 0} />
-                <TouchableOpacity onPress={() => toggleOpenNotifictions(!openNotifications)}>
-                  <NotificationBell />
-                </TouchableOpacity>
-                
+                  <NotificationBell openNotifs={() => toggleOpenNotifictions(!openNotifications)}/>          
               </View>
             </View>
 

@@ -10,6 +10,7 @@ import { router } from 'expo-router'
 import { signOut, updateUser, displayImage } from '@/lib/appwrite'
 import useAuthStore from '@/store/auth.store'
 import useNotificationStore from '@/store/notification.store'
+import {useCordsStore} from '@/store/coords.store'
 
 const Profile = () => {
   const {user} = useAuthStore()
@@ -17,6 +18,8 @@ const Profile = () => {
     const [enablePromoNotifs, setEnablePromoNotifs] = useState(true);
     const [enableNotifs, setEnableNotifs] = useState(true);
     const { addMsg, msgs } = useNotificationStore()
+    const {clearLocations}= useCordsStore()
+
 
     const toggleSwitchNotifs = () => setEnableNotifs(previousState => !previousState);
     const toggleSwitchPromo = () => {
@@ -62,7 +65,11 @@ const Profile = () => {
           <Text className='text-xs font-[Nunito-regular] mt-2 w-[50] text-center'>Check points</Text>
         </View>
 
-        <TouchableOpacity className='flex items-center' onPress={()=> user?.role === 'customer'? Alert.alert('You need be a store owner or morengo rider inorder to access dashboard') : router.push('/Dashboard')}>
+        <TouchableOpacity className='flex items-center' onPress={()=> {
+          clearLocations();
+          // user?.role === 'customer'? Alert.alert('You need be a store owner or morengo rider inorder to access dashboard') : router.push('/Dashboard')
+        }}
+          >
           <View className='rounded-full w-12 h-12 border bg-black'></View>
           <Text className='text-xs font-[Nunito-regular] mt-2 w-[50] text-center'>Open dashboard</Text>
         </TouchableOpacity>

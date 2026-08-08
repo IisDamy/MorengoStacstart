@@ -8,7 +8,7 @@ import Animated, {
   withTiming
 } from "react-native-reanimated";
 import useAuthStore from '@/store/auth.store';
-import { account, getUserAddresses, updateUserAddress } from '@/lib/appwrite';
+import {  getUserAddresses, updateUserAddress } from '@/lib/appwrite';
 import { useCordsStore } from '@/store/coords.store';
 import { Location } from '@/types';
 
@@ -61,10 +61,10 @@ catch(e:any){
             color="white"
           />
 
-          <Text className="text-center font-[Nunito-bold] max-w-[50] ml-[3] text-[12px] text-green-100"
+          <Text className="text-center font-[Nunito-bold] max-w-[50] ml-[2] text-[12px] text-green-100"
       
           >
-            {location?.label || 'Delivery Address'}
+            {location?.label || 'No address'}
           </Text>
 
           <MaterialIcons
@@ -93,13 +93,9 @@ catch(e:any){
      
       }
       </Animated.View>:
-      
-        <Animated.Text style={[animatedDropdownStyle, { transformOrigin: "top" }]}
-        className='absolute text-sm left-[14] w-[75] top-[32]'>
-          {'<'}No saved addresses{'>'}
-          </Animated.Text>}
-    </>
-  )
+      null
+  
 }
+</>)}
 
 export default LocationChangeButton;

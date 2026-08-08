@@ -5,6 +5,7 @@ import { getVendors } from "@/lib/appwrite";
 import useAuthStore from "@/store/auth.store";
 import { useCordsStore } from "@/store/coords.store";
 import { MaterialIcons } from "@expo/vector-icons";
+import {getCurrentLocation} from "@/lib/utils";
 import {
   Camera,
   MapView,
@@ -62,7 +63,7 @@ const location = () => {
   const [vendors, setVendors] = useState<any[]>([]);
 
   const searchTimeout = useRef(null);
-// const location = locations.find((loc) => loc.isCurrent);
+
 
 
   useEffect(() => {
@@ -81,18 +82,17 @@ const location = () => {
     setIsLoading(true);
     
     try {
-      if (location) {
-        console.log(location);
+      if (location.coords) {
+      
         setMapCoords(location.coords);
         return;
+      
       } 
 
       if (!user?.institution || !location) {
         await goToUserLocation();
         return;
       }
-
-   
             const url =
         `${NOMINATIM_BASE}/search` +
         `?q=${encodeURIComponent(user.institution)}` +
@@ -127,6 +127,8 @@ const location = () => {
       }
   };
 
+  
+
   const fetchVendors = async () => {
     try {
       const vendorsRes = await getVendors({});
@@ -147,24 +149,7 @@ const location = () => {
     setIsLoading(true);
 
     try {
-      const { status } = await Location.getForegroundPermissionsAsync();
-
-      if (status !== "granted") {
-        const { status: newStatus } =
-          await Location.requestForegroundPermissionsAsync();
-
-        if (newStatus !== "granted") {
-          console.error("Permission denied");
-          return;
-        }
-      }
-
-      const locationation = await Location.getCurrentPositionAsync({});
-      const coords = [
-        locationation.coords.longitude,
-        locationation.coords.latitude,
-      ];
-
+    const coords = await getCurrentLocation();
       setMapCoords(coords);
     } catch (error) {
       console.error("Location error:", error);

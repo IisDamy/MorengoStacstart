@@ -19,12 +19,12 @@ const CustomButton = (
   return (
   <TouchableOpacity onPress={onPress} disabled={disabled}>
     {leftIcon}
-    <View className={`flex items-center rounded-[10] py-5  p-2 ${style}`}
+    <View className={`flex items-center rounded-[10] py-4  p-2 ${style}`}
        
     >
         {isLoading? (
             <ActivityIndicator size={'small'} color={'white'}/>):(
-                <Text className='text-white font-[Nunito-bold] tracking-wide' style={textStyle}>
+                <Text className={`text-white  font-[Nunito-bold] tracking-wide ${textStyle}`} >
                     {title}
                 </Text>
         )}

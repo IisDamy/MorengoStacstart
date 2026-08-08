@@ -11,7 +11,6 @@ import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { color, images } from "../../constants/index";
 import useAuthStore from "@/store/auth.store";
-import SplashScreen2 from "../(screens)/SplashScreen";
 import { getCurrentUser } from "@/lib/appwrite";
 
 const TabLayout = () => {
