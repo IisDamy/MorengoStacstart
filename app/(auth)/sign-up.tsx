@@ -1,17 +1,13 @@
 import { CustomDropdown } from "@/components";
-import CustomInput from "@/components/CustomInput";
 import PasswordStrengthMeter from "@/components/PasswordStrengthMeterBar";
 import CustomButton from "@/components/ui/CustomButton";
+import CustomInput from "@/components/ui/CustomInput";
 import CustomRadio from "@/components/ui/CustomRadio";
 import { color } from "@/constants";
 import { createUser } from "@/lib/appwrite";
 import { Link, router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-    Alert,
-    Text,
-    View
-} from "react-native";
+import { Alert, Text, View } from "react-native";
 
 export default function SignUp() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -174,7 +170,6 @@ export default function SignUp() {
         onPress={submit}
         style={`bg-[#57a886] mt-6`}
         isLoading={isSubmitting}
-
       />
       <View className="mt-6">
         <Text className=" mb-3  font-light  leading-5 tracking-wide mx-auto">

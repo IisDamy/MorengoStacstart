@@ -1,10 +1,10 @@
-import CustomInput from "@/components/CustomInput";
 import CustomButton from "@/components/ui/CustomButton";
+import CustomInput from "@/components/ui/CustomInput";
 import { color } from "@/constants";
 import {
     SignIn as EmailSignIn,
     OAuthSignIn,
-    refreshAuthStore
+    refreshAuthStore,
 } from "@/lib/appwrite";
 import useAuthStore from "@/store/auth.store";
 import { Link, router } from "expo-router";

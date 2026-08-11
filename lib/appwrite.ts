@@ -676,9 +676,10 @@ export const uploadImage = async (uri: string) => {
 };
 
 export const displayImage =  (imageId: string) => {
-  const imageUrl = storage.getFileViewURL(
-     appwriteConfig.bucketId,
-    imageId,
+  const imageUrl = storage.getFilePreview(
+     {
+    bucketId: appwriteConfig.bucketId,
+    fileId: imageId}
    );
   return imageUrl;
 }
@@ -702,21 +703,21 @@ export const fetchOrders = async (accountId: string): Promise<Order[]> => {
 }
 
 // live in api not here, as well as accept order
-export const getAllCustomersOrders = async (status:string) => {
+// export const getAllCustomersOrders = async (status:string) => {
 
  
-  if (user.role !== 'rider' || user.role !== 'admin') throw new Error('unauthorized access')
-    const res = await tablesDB.listRows({
-    databaseId: appwriteConfig.databaseId,
-    tableId: 'orders',
-    queries:[ Query.equal('status',status)]
-  })
+//   if (user.role !== 'rider' || user.role !== 'admin') throw new Error('unauthorized access')
+//     const res = await tablesDB.listRows({
+//     databaseId: appwriteConfig.databaseId,
+//     tableId: 'orders',
+//     queries:[ Query.equal('status',status)]
+//   })
  
-  return res.rows.map((row: any) => ({
-    ...row,
-    items: JSON.parse(row.items),
-  }))
-}
+//   return res.rows.map((row: any) => ({
+//     ...row,
+//     items: JSON.parse(row.items),
+//   }))
+// }
 
 export const deleteOrder = async (rowId: string) => {
   await tablesDB.deleteRow({
@@ -889,12 +890,14 @@ export const createDeliveryOffer = async ({
   orderId,
   riderId,
   riderName,
-  deliveryFee
+  deliveryFee,
+  expectedDeliveryTime
 }:{
   orderId:string,
   riderId:string,
   riderName:string,
-  deliveryFee:number
+  deliveryFee:number,
+  expectedDeliveryTime:number
 }) => {
   try {
     await tablesDB.createRow({
@@ -905,7 +908,8 @@ export const createDeliveryOffer = async ({
         riderId,
         orderId,
         riderName,
-        deliveryFee
+        deliveryFee,
+        expectedDeliveryTime
       }
     })
   }
@@ -929,3 +933,26 @@ export const getDeliveryOffers = async (orderId:string) => {
     console.error(e)
   }
 }
+
+
+export const updateRiderLocation = async (
+  orderId: string,
+  coords: [number, number] // [lon, lat]
+) => {
+  const [lng, lat] = coords;
+ 
+  return tablesDB.updateRow(
+   { 
+    databaseId: appwriteConfig.databaseId,
+    tableId:'order',
+    rowId:orderId,
+    data:{
+      lat: lat,
+      lng: lng,
+      status: "online",
+    }
+  }
+  );
+};
+
+

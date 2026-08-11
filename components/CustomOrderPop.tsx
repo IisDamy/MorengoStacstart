@@ -1,18 +1,14 @@
-import { useCartStore } from "@/store/cart.auth.store";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React, { useEffect, useState } from "react";
-import {
-    Text,
-    TouchableOpacity,
-    View
-} from "react-native";
-import { PopupWrapper } from ".";
-import CustomInput from "./CustomInput";
-import CustomButton from "./ui/CustomButton";
-import LocationDropdown from "./LocationDropdown";
-import { useCordsStore } from '@/store/coords.store'
-import { router } from "expo-router";
 import { color } from "@/constants";
+import { useCartStore } from "@/store/cart.auth.store";
+import { useCordsStore } from "@/store/coords.store";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { router } from "expo-router";
+import React, { useState } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import { PopupWrapper } from ".";
+import LocationDropdown from "./LocationDropdown";
+import CustomButton from "./ui/CustomButton";
+import CustomInput from "./ui/CustomInput";
 
 interface CustomOrderPopProps {
   visible: boolean;
@@ -24,7 +20,7 @@ export default function CustomOrderPop({
   onClose,
 }: CustomOrderPopProps) {
   const { addItem } = useCartStore();
-  const {locations} = useCordsStore()
+  const { locations } = useCordsStore();
   const [qty, setQty] = useState(1);
   const [form, setForm] = useState({
     name: "",
@@ -33,7 +29,6 @@ export default function CustomOrderPop({
     image: "",
     vendors: { name: "", id: "", locationDescription: "", coords: [] },
   });
-
 
   return (
     <PopupWrapper visible={visible} onClose={onClose}>
@@ -63,20 +58,31 @@ export default function CustomOrderPop({
             <TouchableOpacity
               onPress={() => setQty((prev) => (prev > 1 ? prev - 1 : prev))}
             >
-              <MaterialIcons name="remove-circle" size={24} color={color.moregreen} />
+              <MaterialIcons
+                name="remove-circle"
+                size={24}
+                color={color.moregreen}
+              />
             </TouchableOpacity>
             <Text className="font-bold">{qty}</Text>
             <TouchableOpacity onPress={() => setQty((prev) => prev + 1)}>
-              <MaterialIcons name="add-circle" size={24} color={color.moregreen} />
+              <MaterialIcons
+                name="add-circle"
+                size={24}
+                color={color.moregreen}
+              />
             </TouchableOpacity>
           </View>
         </View>
-          <View>
-              <Text className="mb-4 font-[Nunito-semiBold] ">Add delivery location</Text>
-              <LocationDropdown locations={locations} onNavigate={()=> router.push('/location')}/>
-          </View>
-          
-          
+        <View>
+          <Text className="mb-4 font-[Nunito-semiBold] ">
+            Add delivery location
+          </Text>
+          <LocationDropdown
+            locations={locations}
+            onNavigate={() => router.push("/location")}
+          />
+        </View>
 
         <View className="flex-row items-center">
           <Text className=" w-[10%] text-2xl text-center  font-semibold">

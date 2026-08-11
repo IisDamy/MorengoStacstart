@@ -78,7 +78,7 @@ catch(e:any){
 
       {locations.length > 0? <Animated.View
         style={[animatedDropdownStyle, { transformOrigin: "top" }]}
-        className='absolute border border-t-[0] rounded-b-[5] px-2 left-[6] bg-green-100 top-[32]'
+        className='absolute border border-t-[0] rounded-b-[5] px-2 left-[6] bg-green-100 top-[24]'
       >
         {locations.map((loc) => (
           <Pressable

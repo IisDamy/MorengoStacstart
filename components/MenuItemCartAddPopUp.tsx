@@ -1,3 +1,4 @@
+import { color } from "@/constants";
 import { buildOrderString, formatNaira } from "@/constants/utils";
 import { getModifierOptions } from "@/lib/appwrite";
 import { useCartStore } from "@/store/cart.auth.store";
@@ -9,12 +10,11 @@ import {
     Text,
     TouchableOpacity,
     View,
-    type ViewStyle
+    type ViewStyle,
 } from "react-native";
-import CustomInput from "./CustomInput";
 import PopUpWrapper from "./PopUpWrapper";
 import CustomButton from "./ui/CustomButton";
-import { color } from "@/constants";
+import CustomInput from "./ui/CustomInput";
 
 interface SelectedItem {
   name: string;
@@ -127,11 +127,19 @@ const MenuItemCartAddPopUp: React.FC<MenuItemCartAddPopUpProps> = ({
           <TouchableOpacity
             onPress={() => setQty((prev) => (prev > 1 ? prev - 1 : prev))}
           >
-            <MaterialIcons name="remove-circle" size={24} color={color.moregreen} />
+            <MaterialIcons
+              name="remove-circle"
+              size={24}
+              color={color.moregreen}
+            />
           </TouchableOpacity>
           <Text className="font-[Nunito-bold]">{qty}</Text>
           <TouchableOpacity onPress={() => setQty((prev) => prev + 1)}>
-            <MaterialIcons name="add-circle" size={24} color={color.moregreen} />
+            <MaterialIcons
+              name="add-circle"
+              size={24}
+              color={color.moregreen}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -155,14 +163,13 @@ const MenuItemCartAddPopUp: React.FC<MenuItemCartAddPopUpProps> = ({
               return (
                 <TouchableOpacity
                   key={option.$id}
-                  className={`p-2 rounded-full min-w-12 border w-fit h-fit ${selected ? 'border-green-400 bg-green-50' :''}`}
-                  style={!selected?{ borderColor: '#F97316'}:{}}
-
+                  className={`p-2 rounded-full min-w-12 border w-fit h-fit ${selected ? "border-green-400 bg-green-50" : ""}`}
+                  style={!selected ? { borderColor: "#F97316" } : {}}
                   onPress={() => handleModifierPress(option)}
                 >
-                  <Text className="font-[Nunito-regular] text-center text-[12px] text-orange-300"
-                  style={{color: selected ? color.moregreen : '#F97316'}}
-                  
+                  <Text
+                    className="font-[Nunito-regular] text-center text-[12px] text-orange-300"
+                    style={{ color: selected ? color.moregreen : "#F97316" }}
                   >
                     {option.name}
                     {selected ? ` (${selected.qty})` : ""}

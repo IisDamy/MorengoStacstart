@@ -11,6 +11,7 @@ import { signOut, updateUser, displayImage } from '@/lib/appwrite'
 import useAuthStore from '@/store/auth.store'
 import useNotificationStore from '@/store/notification.store'
 import {useCordsStore} from '@/store/coords.store'
+import {useCartStore }from '@/store/cart.auth.store'
 
 const Profile = () => {
   const {user} = useAuthStore()
@@ -19,6 +20,8 @@ const Profile = () => {
     const [enableNotifs, setEnableNotifs] = useState(true);
     const { addMsg, msgs } = useNotificationStore()
     const {clearLocations}= useCordsStore()
+     const { items, getTotalPrice, clearCart } = useCartStore();
+
 
 
     const toggleSwitchNotifs = () => setEnableNotifs(previousState => !previousState);
@@ -41,7 +44,9 @@ const Profile = () => {
   const image = displayImage(user?.avatar).toString()
 
 
-
+useEffect(() => {
+  router.push('/(screens)/OrderDelivery')
+}, [image])
 
   return (
     <SafeAreaView>
@@ -67,6 +72,7 @@ const Profile = () => {
 
         <TouchableOpacity className='flex items-center' onPress={()=> {
           clearLocations();
+          clearCart();
           // user?.role === 'customer'? Alert.alert('You need be a store owner or morengo rider inorder to access dashboard') : router.push('/Dashboard')
         }}
           >
@@ -142,9 +148,6 @@ const Profile = () => {
           <MaterialIcons name='keyboard-arrow-right' size={20} color={'#C2C2CB'}/>
       </View>
        </TouchableOpacity>
-
-
-   
         </View>
       {/* logout */}
      

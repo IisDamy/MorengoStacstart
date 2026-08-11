@@ -70,3 +70,18 @@ export const getCurrentLocation = async () => {
     throw new Error("Failed to get current location: " + e.message);
   }
 }
+
+
+
+const ACTIVE_TRACKING_STATUSES = ["paid","preparing","in_transit"];
+
+const TERMINAL_ORDER_STATUSES = ["delivered", "cancelled"];
+ 
+export const shouldTrackRiderLocation = (
+  orderStatus: string | null | undefined
+) => {
+  if (!orderStatus) return false;
+  if (TERMINAL_ORDER_STATUSES.includes(orderStatus)) return false;
+  return ACTIVE_TRACKING_STATUSES.includes(orderStatus);
+};
+ 

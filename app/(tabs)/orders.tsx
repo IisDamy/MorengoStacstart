@@ -110,11 +110,13 @@ const OrderCard = ({
 
       {/* Delivery address */}
       <Text className='text-[12px] font-[Nunito-medium] text-zinc-500 mb-3'>
-        Delivering to {order.userAddress}
+        Delivering to {JSON.parse(order.userAddress)?.description || 'N/A'}
       </Text>
-      {order.riderId && <Text className='text-[11px] font-[Nunito-medium] text-zinc-500 mb-3'>
-        Expected Rider: <Text className='capitalize  font-[Nunito-bold]'>{order.riderName}</Text>
-      </Text>}
+      {order.riderId && <View className='flex-row items-center mb-3'>
+        <Text className='text-[11px] font-[Nunito-medium] text-zinc-500'>Expected Rider: </Text>
+        <Image className='w-4 h-4' source={images.check}/>
+        <Text className='capitalize text-zinc-500 text-[11px] font-[Nunito-bold]'> {order.riderName}</Text>
+      </View>}
 
       
 
@@ -156,15 +158,16 @@ const OrderCard = ({
       {order.status === 'pending' && deliveryOffers.length > 0 && (
         <View className='mt-3 pt-3 border-t border-zinc-200'>
           <Text className='text-[11px] py-2 font-[Nunito-bold] uppercase text-zinc-400 mb-2'>
-            Riders offering to deliver
+            Select rider and delivery fee
           </Text>
           {deliveryOffers.map((offer) => (
             <Pressable
               key={offer.$id}
               onPress={() => onSelectRider?.(order, offer)}
               className='flex-row justify-between items-center mx-4 bg-zinc-50 rounded-[10] px-3 py-3 mb-2 border border-zinc-200'
-            >
+            > 
               <Text className='text-[10px] uppercase font-[Nunito-bold] text-zinc-800'>{offer.riderName}</Text>
+              <Text className='text-[10px] uppercase font-[Nunito-bold] text-zinc-400'>{offer.expectedTimeDelivery} mins</Text>
               <Text className='text-[12px] font-[Nunito-bold]' style={{ color: color.moregreen }}>
                 ₦{offer.deliveryFee}
               </Text>

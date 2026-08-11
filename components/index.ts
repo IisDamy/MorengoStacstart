@@ -1,5 +1,4 @@
 import CreateVendorLocation from "./CreateVendorLocation";
-import CustomInput from "./CustomInput";
 import LocationChangeButton from "./LocationChangeButton";
 import LocationSideButton from "./LocationSideButtons";
 import Manifesto from "./Manifesto";
@@ -10,9 +9,13 @@ import PopupWrapper from "./PopUpWrapper";
 import ToggleButton from "./ToggleButton";
 import CustomButton from "./ui/CustomButton";
 import CustomDropdown from "./ui/CustomDropdown";
+import CustomInput from "./ui/CustomInput";
 import NotificationBell from "./ui/NotificationBell";
 import SearchBar from "./ui/SearchBar";
 import TabsHeader from "./ui/TabsHeader";
+import ActiveOrderCard from "./ActiveOrderCard";
+import RiderOrderCard from "./RiderOrderCard";
+
 
 export {
     CreateVendorLocation,
@@ -29,6 +32,8 @@ export {
     PopupWrapper,
     SearchBar,
     TabsHeader,
-    ToggleButton
+    ToggleButton,
+    ActiveOrderCard,
+    RiderOrderCard
 };
 

@@ -28,6 +28,7 @@ persist(
       )
   );
 
+  get().setCurrentLocation(loc);
   // Location already exists → update it in place
   if (existingIndex !== -1) {
     set({
@@ -35,6 +36,7 @@ persist(
         index === existingIndex ? loc : item
       ),
     });
+
     return;
   }
 
@@ -43,7 +45,6 @@ persist(
     locations: [...locations.slice(-7), loc],
   });
 
-  get().setCurrentLocation(loc);
 },
 
       setCurrentLocation: (loc:Location) => {

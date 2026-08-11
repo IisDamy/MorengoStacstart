@@ -191,6 +191,7 @@ interface Order extends Models.Document {
   items: OrderItem[];
   time: string;
   paidAt?:string;
+
 }
 
 interface Location{

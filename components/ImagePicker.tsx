@@ -1,6 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
-import React from "react";
+import React, { useEffect } from "react";
 import { Alert, Image, TouchableOpacity, View } from "react-native";
 import { displayImage } from "@/lib/appwrite";
 
@@ -56,6 +56,9 @@ const ImagePickerD = ({
   };
 
   const imageUri = image ? displayImage(image).toString() : undefined;
+  useEffect(() => {
+    console.log(imageUri, 'imageUri')
+  }, [imageUri]);
 
   return (
     <TouchableOpacity onPress={pickImage}>

@@ -20,7 +20,14 @@ const CustomInput = ({
   const [isFocused, setIsFocused] = React.useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
-  const sizeClass = fill ? "flex-1" : multiline ? "h-[100px]" : "h-[55px]";
+  // `flex-1` alone can resolve to 0 height inside deeply nested flex
+  // containers (especially while KeyboardAvoidingView is resizing), which
+  // clips the typed text. min-h guarantees a visible floor either way.
+  const sizeClass = fill
+    ? "flex-1 min-h-[140px]"
+    : multiline
+    ? "h-[100px]"
+    : "h-[55px]";
 
   return (
     <View className={`${sizeClass} relative`}>

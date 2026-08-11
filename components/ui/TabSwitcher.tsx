@@ -29,7 +29,7 @@ useEffect(() => {
   }))
 
   return (
-    <View className='w-full mb-8 mt-8 pb-3'>
+    <View className='w-full mb-2 mt-8 pb-3'>
       <View className='flex-row w-full justify-between'>
         <Animated.View
           pointerEvents='none'

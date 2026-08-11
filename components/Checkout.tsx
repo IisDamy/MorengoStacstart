@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { createOrder } from '@/lib/appwrite';
 import { color } from '@/constants';
 import { useCartStore } from '@/store/cart.auth.store';
@@ -19,7 +20,7 @@ import { useState } from 'react';
 import { router } from 'expo-router';
 import { useCordsStore } from '@/store/coords.store';
 import LocationSelectorModal from '@/components/LocationSelectorModal';
-import { CustomInput, CustomButton } from '@/components';
+import { CustomInput } from '@/components';
 import { getCurrentLocation } from '@/lib/utils';
 
 const DELIVERY_FEE = 400;
@@ -74,8 +75,34 @@ const CheckoutSummary = () => {
       Alert.alert('Add a description', 'Tell us how to find you \u2014 e.g. "Blue gate, opposite the pharmacy".');
       return;
     }
+    console.log(location)
     saveLocation({ ...location, description: addressDraft.trim() });
     setEditingAddress(false);
+  };
+
+  // Closes the editor without saving — reverts the draft back to whatever
+  // was last saved (or blank, if nothing was ever saved).
+  const handleCloseEdit = () => {
+    setAddressDraft(location?.description || '');
+    setEditingAddress(false);
+  };
+
+  // Called when the user picks a saved location by label from the modal.
+  const handleSelectLocation = (label: string) => {
+    const selected = locations?.find((l) => l.label === label);
+    if (!selected) return;
+
+    saveLocation(selected);
+    toggleChangeLocation(false);
+
+    if (selected.description?.trim()) {
+      setAddressDraft(selected.description);
+    } else {
+      // this saved location has no written description yet — keep the flow
+      // going and prompt for one instead of leaving it incomplete.
+      setAddressDraft('');
+      setEditingAddress(true);
+    }
   };
 
   const handleCheckoutPress = () => {
@@ -104,10 +131,7 @@ const CheckoutSummary = () => {
         subtotalKobo: nairaToKobo(itemTotal),
         totalKobo: nairaToKobo(total),
         customerName: user?.name,
-        userAddress: JSON.stringify({
-          location: location.coords,
-          description: location.description,
-        }),
+        userAddress: JSON.stringify(location),
       });
 
       if (!res) throw new Error('Failed to create order');
@@ -125,7 +149,7 @@ const CheckoutSummary = () => {
       {/* everything below stays compact so checkout never drifts far down.
          while editing the address, this area grows to fill the leftover
          space so the textarea gets real room to breathe. */}
-      <View className={`pb-10 ${editingAddress ? 'flex-1' : ''}`}>
+      <View className={`pb-12 ${editingAddress ? 'flex-1' : ''}`}>
         {/* order summary */}
         <View className="border-t border-zinc-100 pt-2">
           <View className="flex-row w-full justify-between py-0.5">
@@ -170,7 +194,16 @@ const CheckoutSummary = () => {
         <View className={`w-full my-3 ${editingAddress ? 'flex-1' : ''}`}>
           {editingAddress ? (
             <View className="w-full flex-1 gap-2 rounded-[12] border border-zinc-200 p-3">
-              <Text className="font-[Nunito-semiBold] text-sm">Describe your address</Text>
+              <View className="flex-row items-center justify-between">
+                <Text className="font-[Nunito-semiBold] text-sm">Describe your address</Text>
+                <TouchableOpacity
+                  onPress={handleCloseEdit}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close" size={20} color="#71717a" />
+                </TouchableOpacity>
+              </View>
+
               <CustomInput
                 value={addressDraft}
                 onChangeText={setAddressDraft}
@@ -179,23 +212,16 @@ const CheckoutSummary = () => {
                 plain
                 fill
               />
-              <View className="flex-row gap-2">
-                <CustomButton
-                  title="Save"
+
+              <View className="flex-row absolute bottom-3 right-3 justify-end">
+                <TouchableOpacity
                   onPress={handleSaveAddress}
-                  style={{ backgroundColor: color.moregreen, flex: 1, height: 40 }}
-                />
-                {hasDescription && (
-                  <TouchableOpacity
-                    onPress={() => {
-                      setAddressDraft(location.description);
-                      setEditingAddress(false);
-                    }}
-                    className="justify-center px-3"
-                  >
-                    <Text className="font-[Nunito-bold] text-sm text-zinc-400">Cancel</Text>
-                  </TouchableOpacity>
-                )}
+                  className="h-10 w-10 rounded-full items-center justify-center"
+                  style={{ backgroundColor: color.moregreen }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="checkmark" size={22} color="#fff" />
+                </TouchableOpacity>
               </View>
             </View>
           ) : (
@@ -231,7 +257,7 @@ const CheckoutSummary = () => {
           )}
         </View>
 
-        { (
+        {!editingAddress && (
           <Pressable
             onPress={handleCheckoutPress}
             disabled={loading}
@@ -262,6 +288,7 @@ const CheckoutSummary = () => {
         open={changeLocation}
         onClose={() => toggleChangeLocation(false)}
         onNavigate={() => router.push('/(tabs)/location')}
+        onSelect={handleSelectLocation}
         locations={locations}
       />
     </>

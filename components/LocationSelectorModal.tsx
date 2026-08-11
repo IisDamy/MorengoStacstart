@@ -51,7 +51,7 @@ const LocationSelectorModal = ({
         onPress={onClose}
         className="flex-1 bg-black/40 justify-end"
       >
-        <View className=" rounded-t-3xl px-5 pt-5 pb-14">
+        <View className="bg-white rounded-t-3xl px-5 pt-5 pb-14">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-[17px] font-[Nunito-bold] text-zinc-800">
               Choose location
@@ -67,7 +67,7 @@ const LocationSelectorModal = ({
           </View>
 
           { 
-            locations.map((loc) => {
+            locations.length > 0 && locations.map((loc) => {
             const isActive = selected === loc.label;
 
             return (
