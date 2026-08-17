@@ -15,7 +15,7 @@ import SearchBar from "./ui/SearchBar";
 import TabsHeader from "./ui/TabsHeader";
 import ActiveOrderCard from "./ActiveOrderCard";
 import RiderOrderCard from "./RiderOrderCard";
-
+import DisputeReasonModal from "./Disputereasonmodal";
 
 export {
     CreateVendorLocation,
@@ -34,6 +34,13 @@ export {
     TabsHeader,
     ToggleButton,
     ActiveOrderCard,
-    RiderOrderCard
+    RiderOrderCard,
+    DisputeReasonModal
 };
+
+export { default as StatusPill, getStatusMeta } from './StatusPill'
+export { default as OrderCard } from './OrderCard'
+export { default as SectionHeading } from './SectionHeading'
+// export { default as DisputeReasonModal } from './DisputeReasonModal'
+
 

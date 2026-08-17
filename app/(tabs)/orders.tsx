@@ -1,259 +1,19 @@
-import { View, Text, ScrollView, Pressable, Alert, Image, ActivityIndicator, Modal } from 'react-native'
+import { View, Text, ScrollView, Alert, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { color, images } from '@/constants'
+import { color } from '@/constants'
 import { TabsHeader } from '@/components'
 import useAuthStore from '@/store/auth.store'
-import { Order, User } from '@/types'
-import { useCartStore} from '@/store/cart.auth.store'
+import { Order, DeliveryOpts } from '@/types'
+import { useCartStore } from '@/store/cart.auth.store'
 import { subscribeToOrders, RunPaystackAction, confirmDeliveryOffer, getDeliveryOffers, deleteOrder, fetchOrders } from '@/lib/appwrite'
-import { CustomButton, CustomInput } from '@/components'
 import { router } from 'expo-router'
 import TabSwitcher from '@/components/ui/TabSwitcher'
 import useNotificationStore from '@/store/notification.store'
-// ---- status presentation helpers -------------------------------------
+import useActiveOrderStore from '@/store/activeOrderStore'
+import { OrderCard, SectionHeading, DisputeReasonModal } from '@/components'
 
-const STATUS_META: Record<string, { bg: string; text: string; label: string }> = {
-  pending: { bg: '#FDF3E7', text: '#C9820A', label: 'Awaiting Rider' },
-  accepted: { bg: '#E9F7EF', text: color.moregreen, label: 'Rider Connected' },
-  paid: { bg: '#EAF1FF', text: '#2563EB', label: 'Confirmed' },
-  in_transit: { bg: '#F0E9FF', text: '#7C3AED', label: 'In Transit' },
-  delivered: { bg: '#E9F7EF', text: color.moregreen, label: 'Delivered' },
-  cancelled: { bg: '#FBEAEA', text: '#DC2626', label: 'Cancelled' },
-}
-
-const getStatusMeta = (status: string) => STATUS_META[status] ?? { bg: '#F3F4F6', text: '#6B7280', label: status }
-
-const StatusPill = ({ status }: { status: string }) => {
-  const meta = getStatusMeta(status)
-  return (
-    <View className='px-3 py-2 rounded-full' style={{ backgroundColor: meta.bg }}>
-      <Text className='text-[8.5px] font-[Nunito-bold] uppercase tracking-wide' style={{ color: meta.text }}>
-        {meta.label}
-      </Text>
-    </View>
-  )
-}
-
-// ---- order card ---------------------------------------------------------
-
-const DISPUTE_WINDOW_MS = 30 * 1000 
-
-const getDisputeTimeLeft = (order: Order) => { const reference = new Date(order.deliveredAt).getTime()
-  console.log(order.paidAt, )
-  return Math.max(0, DISPUTE_WINDOW_MS - (Date.now() - reference))
-
-
-}
-
-const formatCountdown = (ms: number) => {
-  const secs = Math.ceil(ms / 1000)
-  return `0:${secs.toString().padStart(2, '0')}`
-}
-
-
-interface OrderCardProps {
-  order: Order
-  user: User | null
-  onCancel: (orderId: string) => void
-  onPay: (order: Order) => void
-  onDispute: (order: Order) => void
-  canPay?: boolean
-  canCancel?: boolean
-  canDispute?: boolean
-  deliveryOffers?: any[]
-  onSelectRider?: (order: Order, offer: any) => void
-}
-
-const OrderCard = ({
-  order,
-  user,
-  onCancel,
-  onPay,
-  onDispute,
-  canPay = false,
-  canCancel = false,
-  canDispute = false,
-  deliveryOffers = [],
-  onSelectRider,
-}: OrderCardProps) => {
-  const [disputeTimeLeft, setDisputeTimeLeft] = useState(() => (canDispute ? getDisputeTimeLeft(order) : 0))
-
-  useEffect(() => {
-    if (!canDispute) return
-    setDisputeTimeLeft(getDisputeTimeLeft(order))
-    const interval = setInterval(() => setDisputeTimeLeft(getDisputeTimeLeft(order)), 1000)
-    return () => clearInterval(interval)
-  }, [canDispute, order.$updatedAt])
-
-  const disputeExpired = disputeTimeLeft <= 0
-
-  return (
-    <View
-      className='w-full bg-white rounded-[18]  border border-zinc-200 p-4 mb-4'
-      style={{ shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 1 }}
-    >
-      {/* Header: customer name, time, live status */}
-      <View className='flex-row justify-between items-start mb-3'>
-        <View>
-          <Text className='text-[13px] font-[Nunito-bold] text-zinc-800'>{user?.name}</Text>
-          <Text className='text-[11px] font-[Nunito-regular] text-zinc-400 mt-0.5'>
-            {new Date(order.$createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-            {' · '}
-            {new Date(order.$createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-          </Text>
-        </View>
-        <StatusPill status={order.status} />
-      </View>
-
-      
-
-      {/* Delivery address */}
-      <Text className='text-[12px] font-[Nunito-medium] text-zinc-500 mb-3'>
-        Delivering to {JSON.parse(order.userAddress)?.description || 'N/A'}
-      </Text>
-      {order.riderId && <View className='flex-row items-center mb-3'>
-        <Text className='text-[11px] font-[Nunito-medium] text-zinc-500'>Expected Rider: </Text>
-        <Image className='w-4 h-4' source={images.check}/>
-        <Text className='capitalize text-zinc-500 text-[11px] font-[Nunito-bold]'> {order.riderName}</Text>
-      </View>}
-
-      
-
-      {/* Items */}
-      <View className='rounded-[12] bg-zinc-50 px-3'>
-        {order.items.map((item, idx) => (
-          <View
-            key={`${order.$id}-${idx}`}
-            className={`flex-row items-center gap-3 py-3 ${idx !== order.items.length - 1 ? 'border-b border-zinc-200' : ''}`}
-          >
-            <Image source={{ uri: item.image }} className='rounded-[10] h-14 w-14 bg-zinc-200' resizeMode='cover' />
-            <View className='flex-1'>
-              <Text className='text-[13px] font-[Nunito-bold] text-zinc-800' numberOfLines={1}>
-                {item.name}
-              </Text>
-              {!!item.vendor?.name && (
-                <Text className='text-[11px] font-[Nunito-regular] text-zinc-400 mt-0.5' numberOfLines={1}>
-                  {item.vendor.name}
-                </Text>
-              )}
-              <Text className='text-[11px] font-[Nunito-medium] text-zinc-500 mt-0.5'>Qty {item.quantity}</Text>
-            </View>
-            <Text className='text-[13px] font-[Nunito-bold]' style={{ color: color.moregreen }}>
-              ₦{item.price * item.quantity}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Total */}
-      <View className='flex-row justify-between items-center mt-3 pt-3 border-t border-zinc-200'>
-        <Text className='text-[13px] font-[Nunito-semiBold] text-zinc-600'>Order Total</Text>
-        <Text className='text-[16px] font-[Nunito-bold]' style={{ color: color.moregreen }}>
-          ₦{order.total}
-        </Text>
-      </View>
-
-      {/* Rider offers — pending orders only, waiting for the customer to pick one */}
-      {order.status === 'pending' && deliveryOffers.length > 0 && (
-        <View className='mt-3 pt-3 border-t border-zinc-200'>
-          <Text className='text-[11px] py-2 font-[Nunito-bold] uppercase text-zinc-400 mb-2'>
-            Select rider and delivery fee
-          </Text>
-          {deliveryOffers.map((offer) => (
-            <Pressable
-              key={offer.$id}
-              onPress={() => onSelectRider?.(order, offer)}
-              className='flex-row justify-between items-center mx-4 bg-zinc-50 rounded-[10] px-3 py-3 mb-2 border border-zinc-200'
-            > 
-              <Text className='text-[10px] uppercase font-[Nunito-bold] text-zinc-800'>{offer.riderName}</Text>
-              <Text className='text-[10px] uppercase font-[Nunito-bold] text-zinc-400'>{offer.expectedTimeDelivery} mins</Text>
-              <Text className='text-[12px] font-[Nunito-bold]' style={{ color: color.moregreen }}>
-                ₦{offer.deliveryFee}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
-
-      {/* Actions */}
-      {(canPay || canCancel || canDispute) && (
-        <View className='flex-row gap-3 mt-4'>
-          {canPay && (
-            <View className='flex-1'>
-              <CustomButton textStyle='text-[12px]' title='Make Payment' style='bg-green-500  w-full' onPress={() => onPay(order)} />
-            </View>
-          )}
-          {canDispute && !disputeExpired && (
-            <View className='flex-1'>
-              <Image source={images.clock} className='w-4 mb-4 h-4' resizeMode='contain' />
-              <CustomButton textStyle='text-[12px]' title='Raise Dispute' style='bg-orange-500 w-full' onPress={() => onDispute(order)} />
-            </View>
-          )}
-          {canCancel && (
-            <View className='flex-1'>
-              <CustomButton textStyle='text-[12px]' title='Cancel' style='bg-red-600 w-full' onPress={() => onCancel(order.$id)} />
-            </View>
-          )}
-        </View>
-      )}
-    </View>
-  )
-}
-
-// ---- misc ----------------------------------------------------------------
-
-const SectionHeading = ({ label }: { label: string }) => (
-  <Text className='text-[12px] font-[Nunito-bold] uppercase text-zinc-400 mb-4 '>{label}</Text>
-)
-
-interface DisputeModalProps {
-  visible: boolean
-  reason: string
-  onChangeReason: (val: string) => void
-  onCancel: () => void
-  onSubmit: () => void
-  submitting: boolean
-}
-
-const DisputeReasonModal = ({ visible, reason, onChangeReason, onCancel, onSubmit, submitting }: DisputeModalProps) => (
-  <Modal visible={visible} transparent animationType='fade' onRequestClose={onCancel}>
-    <View className='flex-1 items-center justify-center px-6' style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
-      <View className='w-full bg-white rounded-[18] p-5'>
-        <Text className='text-[15px] font-[Nunito-bold] text-zinc-800 mb-1'>Raise a Dispute</Text>
-        <Text className='text-[12px] font-[Nunito-medium] text-zinc-500 mb-4'>
-          Tell us what went wrong with this order.
-        </Text>
-
-        <CustomInput
-          label='Reason for dispute'
-          placeholder='e.g. Item missing, order damaged...'
-          value={reason}
-          onChangeText={onChangeReason}
-          multiline
-        />
-
-        <View className='flex-row gap-3 mt-5'>
-          <View className='flex-1'>
-            <CustomButton title='Cancel' style='bg-zinc-200 w-full' textStyle='text-zinc-700' onPress={onCancel} disabled={submitting} />
-          </View>
-          <View className='flex-1'>
-            <CustomButton
-              title={submitting ? 'Submitting...' : 'Submit'}
-              style='bg-orange-500 w-full'
-              onPress={onSubmit}
-              disabled={submitting || reason.trim().length === 0}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
-  </Modal>
-)
-
-// ---- screen ---------------------------------------------------------------
-
-const orders = () => {
+const OrdersScreen = () => {
   const { user } = useAuthStore()
   const { addMsg } = useNotificationStore()
   const [activeGroup, setActiveGroup] = useState('Pending')
@@ -262,6 +22,7 @@ const orders = () => {
   const { items } = useCartStore()
   const [orders, setOrders] = useState<Order[]>([])
   const [deliveryOffers, setDeliveryOffers] = useState<Record<string, any[]>>({})
+  const { activeOrder, setActiveOrder, setRiderOpts,clearRiderOpts,riderOpts,  clearActiveOrder, updateActiveOrder } = useActiveOrderStore()
 
   // dispute modal state
   const [disputeModalVisible, setDisputeModalVisible] = useState(false)
@@ -358,22 +119,24 @@ const orders = () => {
               riderId: offer.riderId,
               riderName: offer.riderName,
               deliveryFee: offer.deliveryFee,
+              offerId: offer.$id,
             })
+            setActiveOrder({ $id: updatedOrder.$id, status: updatedOrder.status })
             setOrders((prev) =>
-  prev.map((o) =>
-    o.$id === order.$id
-      ? {
-          ...o,
-          status: updatedOrder.status,
-          riderId: updatedOrder.riderId,
-          riderName: updatedOrder.riderName,
-          deliveryFee: updatedOrder.deliveryFee,
-          platformFee: updatedOrder.platformFee,
-          total: updatedOrder.total,
-        }
-      : o
-  )
-)
+              prev.map((o) =>
+                o.$id === order.$id
+                  ? {
+                      ...o,
+                      status: updatedOrder.status,
+                      riderId: updatedOrder.riderId,
+                      riderName: updatedOrder.riderName,
+                      deliveryFee: updatedOrder.deliveryFee,
+                      platformFee: updatedOrder.platformFee,
+                      total: updatedOrder.total,
+                    }
+                  : o
+              )
+            )
             setDeliveryOffers((prev) => {
               const next = { ...prev }
               delete next[order.$id]
@@ -393,6 +156,16 @@ const orders = () => {
     try {
       const ordersRes = await fetchOrders(user.$id)
       setOrders(ordersRes)
+
+      if (activeOrder) {
+        const matchedOrder = ordersRes.find((order) => order.$id === activeOrder.$id)
+
+        if (matchedOrder) {
+          updateActiveOrder({ $id: matchedOrder.$id, status: matchedOrder.status })
+        } else {
+          clearActiveOrder()
+        }
+      }
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
@@ -401,9 +174,7 @@ const orders = () => {
   }
 
   useEffect(() => {
-     
     getOrders()
-   
   }, [])
 
   useEffect(() => {
@@ -429,6 +200,11 @@ const orders = () => {
       (updatedOrder) => {
         addMsg({ text: `Order ${updatedOrder.status.toLowerCase()}`, type: 'success' })
         setOrders((prev) => prev.map((o) => (o.$id === updatedOrder.$id ? updatedOrder : o)))
+
+        const currentActiveOrder = useActiveOrderStore.getState().activeOrder
+        if (currentActiveOrder?.$id === updatedOrder.$id) {
+          updateActiveOrder({ $id: updatedOrder.$id, status: updatedOrder.status })
+        }
       },
       (updatedCharge) => {
         setDeliveryOffers((prev) => {
@@ -442,11 +218,21 @@ const orders = () => {
           }
         })
       },
-      user?.$id
+      user?.$id,
     )
 
     return unsubscribe
   }, [])
+
+  useEffect(()=> {
+    if (!deliveryOffers && riderOpts) {clearRiderOpts()}
+    else if (deliveryOffers) {
+      const opts = deliveryOffers.map(offer =>{ 
+      const {riderName, expectedTimeDelivery, deliveryFee, lat, lng} = offer
+      return {name: riderName, time: expectedTimeDelivery,lat, lng, price:deliveryFee }})
+      console.log(opts)
+      setRiderOpts(opts)}
+  },[deliveryOffers])
 
   // filter
   const pendingOrders = orders.filter((o) => o.status === 'pending')
@@ -466,7 +252,7 @@ const orders = () => {
       <View className='h-full w-full bg-white flex px-6 items-center'>
         <TabsHeader tabName='Orders' />
 
-       <TabSwitcher stages={orderStage} activeGroup={activeGroup} onChange={setActiveGroup} />
+        <TabSwitcher stages={orderStage} activeGroup={activeGroup} onChange={setActiveGroup} />
 
         {loading ? (
           <ActivityIndicator className='mt-10' color={color.moregreen} />
@@ -552,4 +338,4 @@ const orders = () => {
   )
 }
 
-export default orders
+export default OrdersScreen

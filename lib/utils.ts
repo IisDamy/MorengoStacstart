@@ -3,6 +3,7 @@
 // import { Q } from '@nozbe/watermelondb';
 // import Item from './models/Item';
 import * as Location from 'expo-location';
+import { Order } from '@/types'
 
 // // 1. ADD ITEM
 // export async function addItem(title: string, description: string) {
@@ -73,9 +74,22 @@ export const getCurrentLocation = async () => {
 
 
 
-const ACTIVE_TRACKING_STATUSES = ["paid","preparing","in_transit"];
+export const DISPUTE_WINDOW_MS = 30 * 1000
 
-const TERMINAL_ORDER_STATUSES = ["delivered", "cancelled"];
+export const getDisputeTimeLeft = (order: Order) => {
+  const reference = new Date(order.deliveredAt).getTime()
+  return Math.max(0, DISPUTE_WINDOW_MS - (Date.now() - reference))
+}
+
+export const formatCountdown = (ms: number) => {
+  const secs = Math.ceil(ms / 1000)
+  return `0:${secs.toString().padStart(2, '0')}`
+}
+
+
+export const ACTIVE_TRACKING_STATUSES = ["paid","preparing","in_transit"];
+
+export const TERMINAL_ORDER_STATUSES = ["delivered", "cancelled"];
  
 export const shouldTrackRiderLocation = (
   orderStatus: string | null | undefined

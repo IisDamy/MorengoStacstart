@@ -9,7 +9,8 @@ import { TabsHeader } from '@/components'
 import TabSwitcher from '@/components/ui/TabSwitcher'
 import { MAX_ORDERS, StageKey } from '@/components/orderHelpers'
 import {RiderOrderCard, ActiveOrderCard} from '@/components'
-
+import { getCurrentLocation } from '@/lib/utils'
+import { RELEVANT_STATUSES } from '@/constants'
 
 const CheckOrders = () => {
   const [orders, setOrders] = useState<Order[]>([])
@@ -38,12 +39,16 @@ const CheckOrders = () => {
 
     setAcceptingId(order.$id)
     try {
+      const cords = await getCurrentLocation()
+
       await createDeliveryOffer({
         orderId: order.$id,
         riderId: user.$id,
         riderName: user?.name,
         deliveryFee: Number(deliveryFee),
         expectedTimeDelivery: Number(expectedTimeDelivery),
+        lng: cords[0],
+        lat: cords[1]
       })
       setOfferedIds((prev) => new Set(prev).add(order.$id))
     } catch (error) {
@@ -98,7 +103,7 @@ const CheckOrders = () => {
 
   // ---- live updates ----
   useEffect(() => {
-    const RELEVANT_STATUSES = ['accepted', 'cancelled', 'disputed', 'settled']
+    
 
     const unsubscribe = subscribeToOrders(
       (updatedOrder) => {

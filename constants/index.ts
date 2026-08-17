@@ -200,7 +200,8 @@ export const images = {
 
 
 
-
+export const TERMINAL_STATUSES = ['delivered','confirmed','paid','in_transit','preparing','accepted', 'cancelled', 'disputed', 'settled']
+export const RELEVANT_STATUSES = ['accepted', 'cancelled', 'disputed', 'settled']
 
 export const universities = [
   { name: "Abubakar Tafawa Balewa University", coords: [10.2797, 9.7792] },

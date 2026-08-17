@@ -702,6 +702,7 @@ export const fetchOrders = async (accountId: string): Promise<Order[]> => {
   }))
 }
 
+
 // live in api not here, as well as accept order
 // export const getAllCustomersOrders = async (status:string) => {
 
@@ -734,11 +735,13 @@ export async function confirmDeliveryOffer({
   riderId,
   riderName,
   deliveryFee,
+  offerId
 }: {
   orderId: string
   riderId: string
   riderName: string
-  deliveryFee: number
+  deliveryFee: number,
+  offerId: number
 }) {
   const user = await getCurrentUser()
 
@@ -773,8 +776,14 @@ export async function confirmDeliveryOffer({
   const offers = await tablesDB.listRows({
     databaseId: appwriteConfig.databaseId,
     tableId: 'delivery',
-    queries: [Query.equal('orderId', orderId)],
+    queries: [
+      Query.equal('orderId', orderId),
+      Query.notEqual('$id', offerId)
+
+    ],
   })
+
+  
 
   await Promise.all(
     offers.rows.map((row) =>
@@ -834,7 +843,7 @@ export function subscribeToOrders(
   onOrderUpdate: (order: any) => void,
   onDeliveryUpdate: (delivery: any) => void,
   currentUserId: string,
-
+  orderId?: string
 ) {
   const unsubscribe = client.subscribe(
     [
@@ -859,7 +868,11 @@ export function subscribeToOrders(
       }
 
       if (isDeliveryEvent) {
-        onDeliveryUpdate(response.payload)
+        if (!orderId) return
+        
+        if ( response.payload.orderId === orderId) {
+            onDeliveryUpdate(response.payload)
+        }
       }
     }
   )
@@ -891,13 +904,17 @@ export const createDeliveryOffer = async ({
   riderId,
   riderName,
   deliveryFee,
-  expectedDeliveryTime
+  expectedTimeDelivery,
+  lat,
+  lng
 }:{
   orderId:string,
   riderId:string,
   riderName:string,
   deliveryFee:number,
-  expectedDeliveryTime:number
+  expectedTimeDelivery:number,
+  lat:number,
+  lng:number
 }) => {
   try {
     await tablesDB.createRow({
@@ -909,7 +926,9 @@ export const createDeliveryOffer = async ({
         orderId,
         riderName,
         deliveryFee,
-        expectedDeliveryTime
+        expectedTimeDelivery,
+        lat,
+        lng
       }
     })
   }

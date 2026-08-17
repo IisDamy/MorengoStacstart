@@ -1,22 +1,19 @@
 import { CreateVendorLocation, LocationSideButton } from "@/components";
 import AddLocation from "@/components/AddLocation";
-import { color, images } from "@/constants";
+import LocationMap from "@/components/LocationMap";
+import { color } from "@/constants";
+import  useActiveOrder  from "@/store/activeOrderStore";
+import { useTrackRiderLocation } from "@/hooks/useTrackRider";
 import { getVendors } from "@/lib/appwrite";
 import useAuthStore from "@/store/auth.store";
 import { useCordsStore } from "@/store/coords.store";
 import { MaterialIcons } from "@expo/vector-icons";
 import {getCurrentLocation} from "@/lib/utils";
-import {
-  Camera,
-  MapView,
-  MarkerView,
-  setAccessToken,
-} from "@maplibre/maplibre-react-native";
+import { setAccessToken } from "@maplibre/maplibre-react-native";
 import * as Location from "expo-location";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Text,
   TextInput,
   TouchableOpacity,
@@ -25,33 +22,10 @@ import {
 
 setAccessToken(null);
 
-// change image of store
-const OSM_STYLE = {
-  version: 8,
-  sources: {
-    "osm-tiles": {
-      type: "raster",
-      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      tileSize: 256,
-      attribution: "© OpenStreetMap contributors",
-    },
-  },
-  layers: [
-    {
-      id: "osm-tiles-layer",
-      type: "raster",
-      source: "osm-tiles",
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
-
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 
 const location = () => {
   const { user } = useAuthStore();
-  const cameraRef = useRef(null);
   const { locations, location } = useCordsStore();
   const [mapCoords, setMapCoords] = useState([4.55, 8.5]);
   const [searchText, setSearchText] = useState("");
@@ -61,12 +35,24 @@ const location = () => {
   const [isSaveUserOpened, setIsSaveUserOpened] = useState(false);
   const [isSaveVendorOpened, setIsSaveVendorOpened] = useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
+  const {activeOrder} = useActiveOrder()
 
   const searchTimeout = useRef(null);
 
+  // RIDER TRACKING - if the customer has an order out for delivery, watch
+  // the rider's live position and hand it to the map as `riderCoords`.
+ 
+  const { riderCoords } = useTrackRiderLocation(
+    activeOrder?.$id ??null,
+    user.$id 
+  );
 
+  useEffect(()=>{
+    console.log(riderCoords)
+  },[riderCoords,'not'])
 
   useEffect(() => {
+    console.log(activeOrder?.$id,riderCoords, 'ewfdp')
     initializeLocation();
     fetchVendors();
 
@@ -226,34 +212,21 @@ const location = () => {
 
   return (
     <View className="flex-1 items-center">
-      <MapView
-        style={{ flex: 1, width: "100%" }}
-        mapStyle={JSON.stringify(OSM_STYLE)}
-        logoEnabled={false}
-        compassEnabled={false}
-      >
-        <Camera ref={cameraRef} zoomLevel={15} centerCoordinate={mapCoords} />
+      <LocationMap
+        coords={mapCoords}
+        vendors={vendors}
+        loading={isLoading}
+        riderCoords={riderCoords}
+      />
 
-        {!isLoading && (
-          <>
-            <MarkerView coordinate={mapCoords}>
-              <Image source={images.location} className="w-8 h-8" />
-            </MarkerView>
-
-            {vendors?.length > 0 &&
-              vendors.map((vendor) => (
-                <MarkerView key={vendor.$id} coordinate={vendor.coords}>
-                  <MaterialIcons
-                    name="storefront"
-                    size={32}
-                    color={color.moregreen}
-                    className="self-center"
-                  />
-                </MarkerView>
-              ))}
-          </>
-        )}
-      </MapView>
+      {/* Small banner while a rider is out for delivery */}
+      {riderCoords && (
+        <View className="w-[89%] absolute top-6 bg-white/90 rounded-2xl p-3">
+          <Text className="font-[Nunito-bold] text-sm text-center">
+            Your rider is on the way
+          </Text>
+        </View>
+      )}
 
       {/* SEARCH */}
       <View className="w-full px-12 items-center  absolute top-16">

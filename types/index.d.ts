@@ -183,16 +183,17 @@ interface CustomComponentProps {
     onValueChange: (value: { name: string ,coords: number[] }) => void;
 }
 
-interface Order extends Models.Document {
-  accountId: string;
-  userAddress: string;
-  totalAmount: number;
-  status: string;
-  items: OrderItem[];
-  time: string;
-  paidAt?:string;
+// interface Order extends Models.Document {
+//   accountId: string;
+//   userAddress: string;
+//   totalAmount: number;
+//   status: string;
+//   items: OrderItem[];
+//   time: string;
+//   paidAt?:string;
+//   deliveredAt:string;
 
-}
+// }
 
 interface Location{
     coords:number[],
@@ -222,7 +223,7 @@ interface MenuItemDraft {
   imageId: string | null
 }
 
-interface Order {
+interface Order extends Models.Document {
 customerId:string,
 riderId: string,
 customerName:string,
@@ -242,4 +243,16 @@ deliveryFee: number,
 platformFee:number,
 currency: string,
 items: any[],
+}
+
+interface DeliveryOpts extends Models.Document {
+    riderId:string;
+    orderId:string;
+    riderName:string;
+    deliveryFee:number;
+    expectedTimeDelivery:number;
+    lat:number;
+    lng:number;
+    status:string;
+    active:boolean;
 }

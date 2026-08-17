@@ -175,6 +175,7 @@ export default function Index() {
 
           {/* favourites */}
           <MenuFavouritePanel seeAll={seeAll} />
+          
 
           {/* grid */}
           <Widgets />
