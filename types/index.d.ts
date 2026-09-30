@@ -39,7 +39,7 @@ export interface Vendor {
     rating?:number;
     open?:string;
     closes?:string;
-    category?:string;
+    category?:string[];
     ownerId:string;
     verified?:boolean;
     menu?:MenuItem[];
@@ -198,7 +198,7 @@ interface CustomComponentProps {
 interface Location{
     coords:number[],
     label?:string,
-    description:string
+    description?:string
 }
 
 interface CoordsStore{
@@ -256,3 +256,44 @@ interface DeliveryOpts extends Models.Document {
     status:string;
     active:boolean;
 }
+
+
+export interface EventPayload {
+  name: string;
+  type: "cosmetics" | "handywork" | "private lessons" | "barbing" | "music" | "hosting" | "laundry" | "printing" | "gaming" | "photography" | "other";
+  description: string;
+  offers: string; // JSON-stringified ServiceOffer[]
+  weekly: boolean;
+  dotw: string; // JSON-stringified array of days, e.g. '["Mon","Wed"]' — empty '[]' when weekly is false
+  duration: number; // minutes
+  openTime: string; // e.g. "9:00 AM" — start of the daily booking window
+  closeTime: string; // e.g. "5:00 PM" — end of the daily booking window
+  locationText: string;
+  coords: number[];
+  userId: string;
+  dateTimeOnce: string[]; // specific one-off dates, e.g. ["2026-09-01"] — empty [] when weekly is true
+}
+
+export interface BookingPayload {
+  customerId: string;
+  eventId: string;
+  providerId: string;
+  dateTime: string;
+  time: string; // the specific time the customer picked, within the event's open/close window
+  offerName: string;
+  eventName: string;
+  scheduledAt: string;
+    eventType: string;
+    eventLocation: string;
+    eventCoords?: number[],
+        status: "pending",
+        offerName: string,
+     total: number;
+  status?: "pending_payment" | "paid" | "active" | "completed" |  "cancelled";
+
+}
+
+export type ServiceOffer = {
+  name: string;
+  price: number;
+};

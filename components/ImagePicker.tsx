@@ -1,8 +1,8 @@
+// components/ImagePicker.tsx
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect } from "react";
+import React from "react";
 import { Alert, Image, TouchableOpacity, View } from "react-native";
-import { displayImage } from "@/lib/appwrite";
 
 const ImagePickerD = ({
   image,
@@ -17,8 +17,7 @@ const ImagePickerD = ({
         {
           text: "Camera",
           onPress: async () => {
-            const permission =
-              await ImagePicker.requestCameraPermissionsAsync();
+            const permission = await ImagePicker.requestCameraPermissionsAsync();
             if (!permission.granted) return;
 
             const result = await ImagePicker.launchCameraAsync({
@@ -26,16 +25,13 @@ const ImagePickerD = ({
               quality: 0.7,
             });
 
-            if (!result.canceled) {
-              setImage(result.assets[0].uri);
-            }
+            if (!result.canceled) setImage(result.assets[0].uri);
           },
         },
         {
           text: "Gallery",
           onPress: async () => {
-            const permission =
-              await ImagePicker.requestMediaLibraryPermissionsAsync();
+            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (!permission.granted) return;
 
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -43,9 +39,7 @@ const ImagePickerD = ({
               quality: 0.7,
             });
 
-            if (!result.canceled) {
-              setImage(result.assets[0].uri);
-            }
+            if (!result.canceled) setImage(result.assets[0].uri);
           },
         },
         { text: "Cancel", style: "cancel" },
@@ -55,23 +49,17 @@ const ImagePickerD = ({
     }
   };
 
-  const imageUri = image ? displayImage(image).toString() : undefined;
-  useEffect(() => {
-    console.log(imageUri, 'imageUri')
-  }, [imageUri]);
-
   return (
-    <TouchableOpacity onPress={pickImage}>
-      <View className="w-[100] h-[100] rounded-full mb-12 my-2 bg-zinc-300 items-center justify-center">
-        
+    <TouchableOpacity onPress={pickImage} className="self-center">
+      <View className="w-[104] h-[104] rounded-full bg-zinc-200 items-center justify-center overflow-hidden">
         {image ? (
-          <Image
-            source={{ uri: imageUri }}
-            className="w-full h-full rounded-full"
-          />
+          <Image source={{ uri: image }} className="w-full h-full" />
         ) : (
-          <MaterialIcons name="camera-alt" size={28} color="gray" />
+          <MaterialIcons name="camera-alt" size={28} color="#9CA3AF" />
         )}
+      </View>
+      <View className="absolute bottom-0 right-0 bg-blue-500 w-8 h-8 rounded-full items-center justify-center border-2 border-white">
+        <MaterialIcons name="edit" size={16} color="white" />
       </View>
     </TouchableOpacity>
   );

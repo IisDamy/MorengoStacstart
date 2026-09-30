@@ -12,6 +12,8 @@ import TabSwitcher from '@/components/ui/TabSwitcher'
 import useNotificationStore from '@/store/notification.store'
 import useActiveOrderStore from '@/store/activeOrderStore'
 import { OrderCard, SectionHeading, DisputeReasonModal } from '@/components'
+import * as WebBrowser from 'expo-web-browser'
+
 
 const OrdersScreen = () => {
   const { user } = useAuthStore()
@@ -21,14 +23,15 @@ const OrdersScreen = () => {
   const [loading, setLoading] = useState(true)
   const { items } = useCartStore()
   const [orders, setOrders] = useState<Order[]>([])
-  const [deliveryOffers, setDeliveryOffers] = useState<Record<string, any[]>>({})
-  const { activeOrder, setActiveOrder, setRiderOpts,clearRiderOpts,riderOpts,  clearActiveOrder, updateActiveOrder } = useActiveOrderStore()
+  const [deliveryOffers, setDeliveryOffers] = useState<DeliveryOpts[]>([])
+  const { activeOrder, setActiveOrder, setRiderOpts, clearRiderOpts, riderOpts, clearActiveOrder, updateActiveOrder } = useActiveOrderStore()
 
   // dispute modal state
   const [disputeModalVisible, setDisputeModalVisible] = useState(false)
   const [disputeReason, setDisputeReason] = useState('')
   const [disputeOrder, setDisputeOrder] = useState<Order | null>(null)
   const [submittingDispute, setSubmittingDispute] = useState(false)
+  const [payoutInfo, setPayoutInfo] = useState({status:'',failureReason:'', orderId:'' })
 
   const handleCancel = (orderId: string) => {
     Alert.alert('Cancel Order', 'Are you sure you want to cancel this order?', [
@@ -54,17 +57,27 @@ const OrdersScreen = () => {
       const pay = await RunPaystackAction('payment.initialize', {
         customerId: user.$id,
         riderId: order.riderId,
+        field:'order',
         items: order.items,
         total: order.total,
-        orderId: order.$id,
+        fieldId: order.$id,
         customerEmail: user?.email,
+         metadata: { riderId: order.riderId }, 
       })
 
-      if (pay) {
-        router.push(pay.data.authorizationUrl)
-      }
+  
+    if (!pay?.authorizationUrl) {
+      Alert.alert('Payment error', pay?.message || 'Payment could not be started.')
+      return
+    }
+
+        const result = await WebBrowser.openAuthSessionAsync(pay.data.authorizationUrl) // was the undefined `paymentRes`
+    if (result.type !== 'success' && result.type !== 'dismiss') return
+ 
+    getOrders()
+
     } catch (e) {
-      console.error('Payment error:', e)
+      Alert.alert('Payment error:', e)
       addMsg({ text: 'Failed to start payment', type: 'error' })
     }
   }
@@ -87,7 +100,7 @@ const OrdersScreen = () => {
 
     setSubmittingDispute(true)
     try {
-      await RunPaystackAction('update.status', {
+      await RunPaystackAction('order.updateStatus', {
         orderId: disputeOrder.$id,
         actorId: user?.$id,
         actorRole: user?.role,
@@ -107,7 +120,7 @@ const OrdersScreen = () => {
     }
   }
 
-  const handleSelectRider = (order: Order, offer: any) => {
+  const handleSelectRider = (order: Order, offer: DeliveryOpts) => {
     Alert.alert('Confirm Rider', `Accept ${offer.riderName} for ₦${offer.deliveryFee} delivery?`, [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -137,11 +150,8 @@ const OrdersScreen = () => {
                   : o
               )
             )
-            setDeliveryOffers((prev) => {
-              const next = { ...prev }
-              delete next[order.$id]
-              return next
-            })
+            // drop this order's offers now that one's been picked
+            setDeliveryOffers((prev) => prev.filter((o) => o.orderId !== order.$id))
           } catch (e) {
             console.error('Select rider error:', e)
             addMsg({ text: 'Failed to confirm rider', type: 'error' })
@@ -152,40 +162,43 @@ const OrdersScreen = () => {
   }
 
   const getOrders = async () => {
-    setLoading(true)
-    try {
-      const ordersRes = await fetchOrders(user.$id)
-      setOrders(ordersRes)
-
-      if (activeOrder) {
-        const matchedOrder = ordersRes.find((order) => order.$id === activeOrder.$id)
-
-        if (matchedOrder) {
-          updateActiveOrder({ $id: matchedOrder.$id, status: matchedOrder.status })
-        } else {
-          clearActiveOrder()
-        }
+  if (!user?.$id) return
+  setLoading(true)
+  try {
+    const ordersRes = await fetchOrders(user.$id)
+    setOrders(ordersRes)
+ 
+    if (activeOrder) {
+      const matchedOrder = ordersRes.find((order) => order.$id === activeOrder.$id)
+      if (matchedOrder) {
+        updateActiveOrder({ $id: matchedOrder.$id, status: matchedOrder.status })
+      } else {
+        clearActiveOrder()
       }
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-    } finally {
-      setLoading(false)
     }
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+  } finally {
+    setLoading(false)
   }
-
-  useEffect(() => {
-    getOrders()
-  }, [])
+}
+ 
+useEffect(() => {
+  getOrders()
+}, [user?.$id]) 
 
   useEffect(() => {
     const pending = orders.filter((o) => o.status === 'pending')
-    if (pending.length === 0) return
+    if (pending.length === 0) {
+      setDeliveryOffers([])
+      return
+    }
 
     ;(async () => {
-      const entries = await Promise.all(
-        pending.map(async (o) => [o.$id, (await getDeliveryOffers(o.$id)) ?? []] as const)
-      )
-      setDeliveryOffers(Object.fromEntries(entries))
+      const results = await Promise.all(pending.map((o) => getDeliveryOffers(o.$id)))
+      // tag each offer with its orderId so cards can self-filter, in case the API doesn't already include it
+      const flat = results.flatMap((offers, i) => (offers ?? []).map((o) => ({ ...o, orderId: pending[i].$id })))
+      setDeliveryOffers(flat)
     })()
   }, [orders])
 
@@ -206,16 +219,20 @@ const OrdersScreen = () => {
           updateActiveOrder({ $id: updatedOrder.$id, status: updatedOrder.status })
         }
       },
-      (updatedCharge) => {
+      (updatedCharge: DeliveryOpts) => {
         setDeliveryOffers((prev) => {
-          const existing = prev[updatedCharge.orderId] ?? []
-          const already = existing.some((o) => o.$id === updatedCharge.$id)
-          return {
-            ...prev,
-            [updatedCharge.orderId]: already
-              ? existing.map((o) => (o.$id === updatedCharge.$id ? updatedCharge : o))
-              : [...existing, updatedCharge],
-          }
+          const already = prev.some((o) => o.$id === updatedCharge.$id)
+          return already
+            ? prev.map((o) => (o.$id === updatedCharge.$id ? updatedCharge : o))
+            : [...prev, updatedCharge]
+        })
+      },
+      // payout
+      (updatedPayout)=>{
+        setPayoutInfo({
+          status:updatedPayout.status,
+          failureReason: updatedPayout.failureReason,
+          orderId:updatedPayout.orderId
         })
       },
       user?.$id,
@@ -224,20 +241,22 @@ const OrdersScreen = () => {
     return unsubscribe
   }, [])
 
-  useEffect(()=> {
-    if (!deliveryOffers && riderOpts) {clearRiderOpts()}
-    else if (deliveryOffers) {
-      const opts = deliveryOffers.map(offer =>{ 
-      const {riderName, expectedTimeDelivery, deliveryFee, lat, lng} = offer
-      return {name: riderName, time: expectedTimeDelivery,lat, lng, price:deliveryFee }})
-      console.log(opts)
-      setRiderOpts(opts)}
-  },[deliveryOffers])
+  useEffect(() => {
+    if (deliveryOffers.length === 0) {
+      if (riderOpts) clearRiderOpts()
+      return
+    }
+    const opts = deliveryOffers.map((offer) => {
+      const { riderName, expectedTimeDelivery, deliveryFee, lat, lng } = offer
+      return { name: riderName, time: expectedTimeDelivery, lat, lng, price: deliveryFee }
+    })
+    setRiderOpts(opts)
+  }, [deliveryOffers])
 
   // filter
   const pendingOrders = orders.filter((o) => o.status === 'pending')
   const acceptedOrders = orders.filter((o) => o.status === 'accepted')
-  const confirmedOrders = orders.filter((o) => o.status === 'paid' || o.status === 'in_transit')
+  const confirmedOrders = orders.filter((o) => o.status === 'paid' || o.status === 'preparing' || o.status === 'in_transit')
   const deliveredOrders = orders.filter((o) => o.status === 'delivered')
 
   const visibleCount =
@@ -257,7 +276,7 @@ const OrdersScreen = () => {
         {loading ? (
           <ActivityIndicator className='mt-10' color={color.moregreen} />
         ) : (
-          <ScrollView showsVerticalScrollIndicator={false} className='w-full'>
+          <ScrollView showsVerticalScrollIndicator={false} className='w-full '>
             {visibleCount === 0 && (
               <Text className='text-center font-[Crispy] mt-[256] -rotate-[10deg] text-[16px]' style={{ color: color.morange }}>
                 No {activeGroup.toLowerCase()} orders
@@ -267,7 +286,7 @@ const OrdersScreen = () => {
             {activeGroup === 'Pending' && (
               <>
                 {pendingOrders.length > 0 && (
-                  <View className='mb-2 mt-6'>
+                  <View className='mb-2 mt-2'>
                     {pendingOrders.map((order) => (
                       <OrderCard
                         key={order.$id}
@@ -278,7 +297,7 @@ const OrdersScreen = () => {
                         onDispute={handleDispute}
                         canPay={false}
                         canCancel={true}
-                        deliveryOffers={deliveryOffers[order.$id] ?? []}
+                        deliveryOffers={deliveryOffers}
                         onSelectRider={handleSelectRider}
                       />
                     ))}
@@ -286,7 +305,7 @@ const OrdersScreen = () => {
                 )}
 
                 {acceptedOrders.length > 0 && (
-                  <View>
+                  <View className='mb-2 mt-2'>
                     <SectionHeading label='Ready for payment' />
                     {acceptedOrders.map((order) => (
                       <OrderCard
@@ -305,23 +324,28 @@ const OrdersScreen = () => {
               </>
             )}
 
-            {activeGroup === 'Confirmed' &&
-              confirmedOrders.map((order) => (
-                <OrderCard key={order.$id} order={order} user={user} onCancel={handleCancel} onPay={handlePay} onDispute={handleDispute} />
-              ))}
+            {
+        activeGroup === 'Confirmed' &&
+        confirmedOrders.map((order) => (
+    <View key={order.$id} className='mb-2 mt-2'>
+      <OrderCard order={order} user={user} onCancel={handleCancel} onPay={handlePay} onDispute={handleDispute} />
+    </View>
+  ))}
+ 
+{activeGroup === 'Delivered' &&
+  deliveredOrders.map((order) => (
+    <View key={order.$id} className='mb-2 mt-2'>
+      <OrderCard
+        order={order}
+        user={user}
+        onCancel={handleCancel}
+        onPay={handlePay}
+        onDispute={handleDispute}
+        canDispute={true}
+      />
+    </View>
+  ))}
 
-            {activeGroup === 'Delivered' &&
-              deliveredOrders.map((order) => (
-                <OrderCard
-                  key={order.$id}
-                  order={order}
-                  user={user}
-                  onCancel={handleCancel}
-                  onPay={handlePay}
-                  onDispute={handleDispute}
-                  canDispute={true}
-                />
-              ))}
           </ScrollView>
         )}
       </View>

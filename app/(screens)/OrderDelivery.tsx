@@ -88,7 +88,7 @@ const CheckOrders = () => {
       let ordersRes = await RunPaystackAction('order.getAll', {
         userId: user?.$id,
       })
-      ordersRes = ordersRes.data.orders.map((order) => ({ ...order, items: JSON.parse(order.items) }))
+      ordersRes = ordersRes.orders.map((order) => ({ ...order, items: JSON.parse(order.items) }))
       setOrders(ordersRes.slice(0, MAX_ORDERS))
     } catch (error) {
       console.error('Error fetching orders:', error)
@@ -116,6 +116,8 @@ const CheckOrders = () => {
         })
       },
       () => {},
+       // payout
+      ()=>{},
       user?.$id
     )
 

@@ -23,7 +23,7 @@ import burgerTwo from "@/assets/images/burger-two.png";
 import coleslaw from "@/assets/images/coleslaw.png";
 import emptyState from "@/assets/images/empty-state.png";
 import fries from "@/assets/images/fries.png";
-import loginGraphic from "@/assets/images/login-graphic.png";
+import loginGraphic from "@/assets/images/login-graphic.jpg";
 import logo from "@/assets/images/logo.png";
 import salad from "@/assets/images/salad.png";
 import success from "@/assets/images/success.png";
@@ -52,35 +52,50 @@ import target from '@/assets/icons/target.png'
 import customdelivery from '@/assets/images/customdelivery.jpg';
 import womaneatschicken from '@/assets/images/womaneatschicken.jpg';
 import businesslady from '@/assets/images/businesslady.jpg';
-import guywithdrink from '@/assets/images/guywithdrink.jpg';
 import cartoonArrow from '@/assets/images/cartoon-arrow.png'
 import allsorts from '@/assets/images/allsorts.png';
 import fastDelivery from '@/assets/icons/fast-delivery.png'
 import maskRectangle from '@/assets/images/mask-rectangle.png'
-import connectingRider from '@/assets/videos/connecting-rider.mp4'
+import rider from '@/assets/icons/rider.png';
+import menu from '@/assets/icons/menu.png';
+import launch from '@/assets/icons/launch.png';
+import startBrand from '@/assets/images/start-brand.jpg';
+import joinFleet from '@/assets/images/join-fleet.jpg';
+import dashboardManage from '@/assets/images/dashboardManage.jpg'
+
+
+// export const CATEGORIES = [
+//     {
+//         id: "1",
+//         name: "All",
+//     },
+//     {
+//         id: "2",
+//         name: "Burger",
+//     },
+//     {
+//         id: "3",
+//         name: "Pizza",
+//     },
+//     {
+//         id: "4",
+//         name: "Wrap",
+//     },
+//     {
+//         id: "5",
+//         name: "Burrito",
+//     },];
 
 export const CATEGORIES = [
-    {
-        id: "1",
-        name: "All",
-    },
-    {
-        id: "2",
-        name: "Burger",
-    },
-    {
-        id: "3",
-        name: "Pizza",
-    },
-    {
-        id: "4",
-        name: "Wrap",
-    },
-    {
-        id: "5",
-        name: "Burrito",
-    },
-];
+    'recent','favourite', 'local','popular',
+    'mobile','fastfood', 'restaurent','bakery',
+    'tech', 'fashion','groceries'
+]
+
+export const CATEGORIESHEADER =[
+    'fastfood','bakery','groceries',
+    'tech', 'fashion', 'local'
+]
 
 export const TabGrouping = [
     'Recent', 'Favorite','Rating','Popular'
@@ -136,7 +151,7 @@ export const color = {
 export const animations = {
     sparkle,
     smiley,
-    connectingRider
+   
 }
 
 export const images = {
@@ -190,11 +205,16 @@ export const images = {
     profile,
     target,
     customdelivery,
-    guywithdrink,
     cartoonArrow,
     allsorts,
     fastDelivery,
-    maskRectangle
+    maskRectangle,
+    rider,
+    menu,
+    launch,
+    startBrand,
+    joinFleet,
+    dashboardManage
     
 };
 
@@ -271,4 +291,20 @@ export const universities = [
   { name: "University of Port Harcourt", coords: [4.8167, 6.9167] },
   { name: "University of Uyo", coords: [5.0500, 7.9333] },
   { name: "Yaba College of Technology", coords: [6.5000, 3.3833] }
+];
+
+
+export const EVENT_TYPES = [
+  { label: "Cosmetics", value: "cosmetics" },
+  { label: "Handywork", value: "handywork" },
+  { label: "Private Lessons", value: "private lessons" },
+  { label: "Barbing", value: "barbing" },
+  { label: "Laundry", value: "laundry" },
+  { label: "Photography", value: "photography" },
+  { label: "Printing", value: "printing" },
+  { label: "Gaming", value: "gaming" },
+  { label: "Music", value: "music" },
+  {label:"Hosting", value:"hosting"},
+  { label: "Other", value: "other" },
+  
 ];

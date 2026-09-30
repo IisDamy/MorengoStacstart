@@ -84,10 +84,11 @@ const AddLocation = ({ isOpened, coords }: AddLocationProps) => {
 
       <TouchableOpacity onPress={handleAddLocation} disabled={isLoading}>
         <Text
-          className="p-2 rounded-[10] text-center font-[Nunito-bold] text-white"
-          style={{ backgroundColor: isLoading ? '#aaa' : color.moregreen }}
+          className="p-2 rounded-[10] text-center bg-green-600 text-sm  font-[Nunito-bold] text-white"
+          // style={{ backgroundColor: isLoading ? '#aaa' : color.moregreen }}
+          style={isLoading?{backgroundColor:  '#aaa'}:{}}
         >
-          Save
+          Save as
         </Text>
       </TouchableOpacity>
     </Animated.View>

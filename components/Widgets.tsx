@@ -22,18 +22,24 @@ import Animated, {
 
 import CustomOrderPop from "./CustomOrderPop";
 import { router } from "expo-router";
+const SMALL = 50;
 
-const SMALL = 60;
-const LARGE = 250;
-const DEFAULT = 160;
+const RATIO = 0.85; // height = width * RATIO — tweak this to taste
 
-const RADIUS = 15;
+const LARGE_W = 250;
+const LARGE_H = LARGE_W * RATIO;
+
+const DEFAULT_W = 158;
+const DEFAULT_H = DEFAULT_W * RATIO;
+
+const RADIUS = 20;
 const FULL_RADIUS = 999;
 
 export default function Widgets() {
   const active = useSharedValue<null | number>(null);
 
-  const holdTimeout = useRef<NodeJS.Timeout | null>(null);
+  const holdTimeout = useRef(null);
+const detailsTimeout = useRef(null);
 
   const [showDetails, setShowDetails] =
     useState<number | null>(null);
@@ -47,11 +53,11 @@ export default function Widgets() {
   useEffect(() => {
     arrowFloat.value = withRepeat(
       withSequence(
-        withTiming(-5, {
-          duration: 650,
+        withTiming(-3, {
+          duration: 500,
         }),
         withTiming(0, {
-          duration: 650,
+          duration: 500,
         })
       ),
       -1,
@@ -79,122 +85,68 @@ export default function Widgets() {
       };
     });
 
-  const handlePressIn = (
-    index: number
-  ) => {
-    holdTimeout.current =
-      setTimeout(() => {
-        active.value = index;
+const handlePressIn = (index) => {
+  holdTimeout.current = setTimeout(() => {
+    active.value = index;
 
-        setTimeout(() => {
-          setShowDetails(index);
-        }, 250);
-      }, 250);
-  };
+    detailsTimeout.current = setTimeout(() => {
+      setShowDetails(index);
+    }, 250);
+  }, 250);
+};
 
-  const handlePressOut = () => {
-    if (holdTimeout.current) {
-      clearTimeout(
-        holdTimeout.current
-      );
+const handlePressOut = () => {
+  if (holdTimeout.current) {
+    clearTimeout(holdTimeout.current);
+    holdTimeout.current = null;
+  }
+
+  if (detailsTimeout.current) {
+    clearTimeout(detailsTimeout.current);
+    detailsTimeout.current = null;
+  }
+
+  active.value = null;
+  setShowDetails(null);
+};
+
+const createStyle = (index) =>
+  useAnimatedStyle(() => {
+    if (active.value === null) {
+      return {
+        width: withTiming(DEFAULT_W),
+        height: withTiming(DEFAULT_H),
+        borderRadius: withTiming(RADIUS),
+      };
     }
 
-    active.value = null;
-    setShowDetails(null);
-  };
+    const isTop = index === 1 || index === 2;
+    const isLeft = index === 1 || index === 3;
 
-  const createStyle = (
-    index: number
-  ) =>
-    useAnimatedStyle(() => {
-      if (
-        active.value === null
-      ) {
-        return {
-          width: withTiming(
-            DEFAULT
-          ),
-          height: withTiming(
-            DEFAULT
-          ),
-          borderRadius:
-            withTiming(RADIUS),
-        };
-      }
+    const activeTop = active.value === 1 || active.value === 2;
+    const activeLeft = active.value === 1 || active.value === 3;
 
-      const isTop =
-        index === 1 ||
-        index === 2;
+    const sameRow = (isTop && activeTop) || (!isTop && !activeTop);
+    const sameCol = (isLeft && activeLeft) || (!isLeft && !activeLeft);
 
-      const isLeft =
-        index === 1 ||
-        index === 3;
+    let width = SMALL;
+    let height = SMALL;
 
-      const activeTop =
-        active.value === 1 ||
-        active.value === 2;
+    if (sameRow) height = LARGE_H;
+    if (sameCol) width = LARGE_W;
 
-      const activeLeft =
-        active.value === 1 ||
-        active.value === 3;
+    const isActive = active.value === index;
+    const isReduced = width === SMALL || height === SMALL;
 
-      const sameRow =
-        (isTop &&
-          activeTop) ||
-        (!isTop &&
-          !activeTop);
-
-      const sameCol =
-        (isLeft &&
-          activeLeft) ||
-        (!isLeft &&
-          !activeLeft);
-
-      let width = SMALL;
-      let height = SMALL;
-
-      if (sameRow)
-        height = LARGE;
-
-      if (sameCol)
-        width = LARGE;
-
-      const isActive =
-        active.value === index;
-
-      const isReduced =
-        width === SMALL ||
-        height === SMALL;
-
-      return {
-        width: withTiming(
-          width,
-          {
-            duration: 220,
-          }
-        ),
-
-        height:
-          withTiming(
-            height,
-            {
-              duration: 220,
-            }
-          ),
-
-        borderRadius:
-          withTiming(
-            isActive
-              ? RADIUS
-              : isReduced
-              ? FULL_RADIUS
-              : RADIUS,
-            {
-              duration: 280,
-            }
-          ),
-      };
-    });
+    return {
+      width: withTiming(width, { duration: 220 }),
+      height: withTiming(height, { duration: 220 }),
+      borderRadius: withTiming(
+        isActive ? RADIUS : isReduced ? FULL_RADIUS : RADIUS,
+        { duration: 280 }
+      ),
+    };
+  });
 
   const box1 =
     createStyle(1);
@@ -219,37 +171,32 @@ export default function Widgets() {
     return (
       <>
         {/* bubble */}
+        
         <Animated.View
-          entering={ZoomIn.springify()
-            .damping(20)
-            .stiffness(110)}
-          exiting={FadeOut.duration(
-            100
-          )}
-          style={[
-            styles.descriptionBubble,
-            {
-              backgroundColor:
-                bubbleColor,
-            },
-          ]}
-        >
-          {/* text */}
-        <Animated.Text
-  entering={
-    FadeIn.springify()
-      .damping(24)
-      .stiffness(110)
-      .withInitialValues({
-        opacity: 0,
-        transform: [{ scale: 0.6 }],
-      })
-  }
-  style={styles.descriptionText}
+  entering={ZoomIn.springify()
+    .damping(25)
+    .stiffness(120)}
+  exiting={FadeOut.duration(80)}
+  style={[
+    styles.descriptionBubble,
+    { backgroundColor: 'transparent' },
+  ]}
 >
-            {text}
-          </Animated.Text>
-        </Animated.View>
+  <Animated.Text
+    entering={
+      FadeIn.springify()
+        .damping(30)
+        .stiffness(200)
+        .withInitialValues({
+          opacity: 0,
+          transform: [{ scale: 0.85 }],
+        })
+    }
+    style={styles.descriptionText}
+  >
+    {text}
+  </Animated.Text>
+</Animated.View>
 
         {/* arrow */}
         <Animated.Image
@@ -273,15 +220,17 @@ export default function Widgets() {
   };
 
   return (
-    <View className="gap-2">
+    <View className="gap-4 my-6 mb-16">
       {/* TOP */}
-      <View className="flex-row gap-2">
+      <Text className="text-black ">More</Text>
+      <View className="flex-row gap-4">
         {/* BOX 1 */}
         <Pressable
           onPress={() =>
-            toggleOpenCustomOrder(
-              true
+              router.push(
+              "/(screens)/Choosecreatetype"
             )
+           
           }
           onPressIn={() =>
             handlePressIn(1)
@@ -296,22 +245,24 @@ export default function Widgets() {
           >
             <ImageBackground
               source={
-                images.customdelivery
+                images.startBrand
               }
-              className="w-[300] absolute h-[300]"
+              className="w-[300] top-1/2 -translate-y-1/2  absolute h-[300]"
             />
+            <View style={styles.darkOverlay} />
 
             <Text
               style={
                 styles.titleText
               }
-              className="z-2 text-center w-[100] mx-auto my-auto"
+              className="z-2 text-center w-[120] mx-auto my-auto"
             >
-              make a CUSTOM ORDER
+              start your brand
             </Text>
 
             {renderDescription(
-              "Order items not currently available in our stores.",
+              "Launch and manage multiple service stores with ease."
+              ,
               1,
               "rgba(255,105,180,0.75)"
             )}
@@ -321,10 +272,7 @@ export default function Widgets() {
         {/* BOX 2 */}
         <Pressable
           onPress={() =>
-            console.log(
-              "clicked box 2"
-            )
-          }
+            router.push('/(screens)/BrowseEvents')         }
           onPressIn={() =>
             handlePressIn(2)
           }
@@ -340,21 +288,20 @@ export default function Widgets() {
               source={
                 images.businesslady
               }
-              className="w-[300] absolute h-[300]"
+              className="w-[300] top-1/2 -translate-y-1/2  left-1/2 -translate-x-1/2  absolute h-[300]"
             />
-
+              <View style={styles.darkOverlay} />
             <Text
               style={
                 styles.titleText
               }
               className="z-2 text-center w-[100] mx-auto my-auto"
             >
-              Laundry, gas and
-              more..
+              Something for everyone
             </Text>
 
             {renderDescription(
-              "Manage multiple service stores with ease.",
+              "Discover community offerings and schedule a booking.",
               2,
               "rgba(255,215,0,0.75)"
             )}
@@ -363,13 +310,11 @@ export default function Widgets() {
       </View>
 
       {/* BOTTOM */}
-      <View className="flex-row gap-2">
+      <View className="flex-row gap-4">
         {/* BOX 3 */}
         <Pressable
           onPress={() =>
-            router.push(
-              "/(screens)/CreateStore"
-            )
+               router.push("/(screens)/Questionaire")
           }
           onPressIn={() =>
             handlePressIn(3)
@@ -384,23 +329,23 @@ export default function Widgets() {
           >
             <ImageBackground
               source={
-                images.womaneatschicken
+                images.joinFleet
               }
-              className="w-[300] absolute h-[300]"
+              className="w-[300] top-1/2 -translate-y-1/2 absolute h-[300]"
+         
             />
-
+            <View style={styles.darkOverlay} />
             <Text
               style={
                 styles.titleText
               }
               className="z-2 text-center w-[100] mx-auto my-auto"
             >
-              create a vendor
-              store
+              join the fleet
             </Text>
 
             {renderDescription(
-              "Launch and manage your own store.",
+              "Deliver packages and earn per trip.",
               3,
               "rgba(0,255,200,0.75)"
             )}
@@ -410,7 +355,10 @@ export default function Widgets() {
         {/* BOX 4 */}
         <Pressable
           onPress={() =>
-           router.push("/(screens)/Questionaire")
+              toggleOpenCustomOrder(
+              true
+            )
+          
           }
           onPressIn={() =>
             handlePressIn(4)
@@ -429,18 +377,19 @@ export default function Widgets() {
               }
               className="w-[300] absolute h-[300]"
             />
-
+            <View style={styles.darkOverlay} />
             <Text
               style={
                 styles.titleText
               }
-              className="z-2 text-center w-[100] mx-auto my-auto"
+              className="z-2 text-center w-[120] mx-auto my-auto"
             >
-              become a rider
+              make a custom order
             </Text>
 
             {renderDescription(
-              "Deliver packages and earn per trip.",
+              "Order items not currently available in our stores."
+              ,
               4,
               "rgba(255,140,0,0.75)"
             )}
@@ -465,12 +414,12 @@ export default function Widgets() {
 const styles =
   StyleSheet.create({
     titleText: {
-      fontSize: 14,
+      fontSize: 12,
       fontFamily:
         "Crispy",
       lineHeight: 20,
       color:
-        color.morange,
+        color.moregreen,
 
       textShadowColor:
         "#000",
@@ -497,16 +446,16 @@ const styles =
         paddingHorizontal: 10,
         paddingVertical: 6,
 
-        borderRadius: 12,
+        // borderRadius: 12,
 
-        borderWidth: 1,
-        borderColor:
-          "rgba(255,255,255,0.25)",
+        // borderWidth: 1,
+        // borderColor:
+        //   "rgba(255,255,255,0.25)",
       },
 
     descriptionText:
       {
-        fontSize: 11,
+        fontSize: 10,
 
         lineHeight: 14,
 
@@ -533,9 +482,13 @@ const styles =
     arrow: {
       position:
         "absolute",
-      height: 50,
-      width: 50,
-      right: 5,
-      top: "40%",
+      height: 30,
+      width: 30,
+      right: 20,
+      top: "50%",
     },
+    darkOverlay: {
+  ...StyleSheet.absoluteFillObject,
+  backgroundColor: "rgba(0,0,0,0.22)",
+},
   });

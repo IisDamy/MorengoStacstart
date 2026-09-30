@@ -15,7 +15,7 @@ import SearchBar from "./ui/SearchBar";
 import TabsHeader from "./ui/TabsHeader";
 import ActiveOrderCard from "./ActiveOrderCard";
 import RiderOrderCard from "./RiderOrderCard";
-import DisputeReasonModal from "./Disputereasonmodal";
+import DisputeReasonModal from "./DisputeReasonModal";
 
 export {
     CreateVendorLocation,

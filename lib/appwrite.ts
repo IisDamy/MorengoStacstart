@@ -1,4 +1,4 @@
-import { Address, CartItemType, CreateUserParams, GetItemParams, GetVendorParams, MenuItem, Order, SignInParams, Vendor} from "@/types";
+import { Address, BookingPayload, CartItemType, CreateUserParams, GetItemParams, GetVendorParams, MenuItem, Order, SignInParams, Vendor} from "@/types";
 import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from 'expo-linking';
@@ -16,10 +16,11 @@ import {
   Functions
 } from "react-native-appwrite";
 import useAuthStore from "@/store/auth.store";
-import User from '@/types'
+import User from '@/types';
+import { EventPayload } from "@/types";
 import { calcPlatformFee, nairaToKobo } from "@/constants/utils";
 import { Q } from "@nozbe/watermelondb";
-
+import {  Permission, Role } from "appwrite"; 
 // # dont forget to delete this and add complete eas build for secrets before launch
 // # use eas secret:list to get already created secrets
 
@@ -413,6 +414,26 @@ export const getVendors = async ({ categories, query, }: GetVendorParams) => {
     }
 }
 
+export const getVendorSuggestions = async (query) => {
+  if (!query?.trim()) return [];
+
+  try {
+    const result = await tablesDB.listRows({
+      databaseId: appwriteConfig.databaseId,
+      tableId: 'vendors',
+      queries: [
+        Query.search('name', query),
+        Query.limit(5),
+        Query.select(['name', '$id']), // only pull what the dropdown needs
+      ],
+    });
+
+    return result.rows;
+  } catch (e) {
+    console.error('getVendorSuggestions error:', e);
+    return [];
+  }
+};
 
 // don't forgrt ownerid
 export const createVendor = async (data:Vendor)=>{
@@ -842,6 +863,7 @@ export const getAdditionalFee = async () => {
 export function subscribeToOrders(
   onOrderUpdate: (order: any) => void,
   onDeliveryUpdate: (delivery: any) => void,
+  onPayoutUpdate: (payout:any) => void,
   currentUserId: string,
   orderId?: string
 ) {
@@ -849,6 +871,7 @@ export function subscribeToOrders(
     [
       `databases.${appwriteConfig.databaseId}.collections.orders.documents`,
       `databases.${appwriteConfig.databaseId}.collections.delivery.documents`,
+      `databases.${appwriteConfig.databaseId}.collection.payouts.documents`
     ],
     (response) => {
       const isRelevant = response.events.some(
@@ -858,6 +881,7 @@ export function subscribeToOrders(
 
       const isOrderEvent = response.events.some((e) => e.includes('.collections.orders.'))
       const isDeliveryEvent = response.events.some((e) => e.includes('.collections.delivery.'))
+      const isPayoutEvent = response.events.some((e) => e.includes('.collections.payouts.'))
 
       if (isOrderEvent) {
         const updatedOrder = { ...response.payload, items: JSON.parse(response.payload.items) }
@@ -874,6 +898,16 @@ export function subscribeToOrders(
             onDeliveryUpdate(response.payload)
         }
       }
+      if(isPayoutEvent){
+        if (orderId){
+          if (response.payload.orderId === orderId){
+            onPayoutUpdate(response.payload)
+          }
+        }
+
+      }
+
+
     }
   )
 
@@ -882,22 +916,22 @@ export function subscribeToOrders(
 
 
 
-export const RunPaystackAction = async (action:string, body:any) => {
- try{
-  const execution = await functions.createExecution({
-    functionId:appwriteConfig.functionId,
-    body: JSON.stringify({
-    'action': action,
-    ...body
-    }),
-  })
+export const RunPaystackAction = async (action, body) => {
+  try {
+    const execution = await functions.createExecution({
+      functionId: appwriteConfig.functionId,
+      body: JSON.stringify({ action, ...body }),
+    });
 
-  return JSON.parse(execution.responseBody)
- }
- catch(e){
-  console.error(e)
- }
-}
+    const parsed = JSON.parse(execution.responseBody);
+
+    if (parsed?.success === false) return { error: parsed.error || "Request failed" };
+    return parsed?.data ?? parsed; // callers now get the inner payload directly
+  } catch (e) {
+    console.error(e);
+    return { error: e.message };
+  }
+};
 
 export const createDeliveryOffer = async ({
   orderId,
@@ -975,3 +1009,98 @@ export const updateRiderLocation = async (
 };
 
 
+export const createEvent = async (data: EventPayload) => {
+  try {
+
+    const res = await tablesDB.createRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId: "event",
+      rowId: ID.unique(),
+      data: data,
+    });
+    if (res) return true;
+  } catch (e) {
+    throw new Error(e as string);
+  }
+};
+
+export const getEvents = async () => {
+  try{
+    const events = await tablesDB.listRows({
+      databaseId:appwriteConfig.databaseId,
+      tableId:'event'
+    })
+
+    return events.rows
+  }
+  catch(e){
+    throw new Error(e as string)
+  }
+}
+
+export const addBooking = async (data:BookingPayload) => {
+  try{
+    const res = await tablesDB.createRow({
+      databaseId:appwriteConfig.databaseId,
+      tableId:'bookings',
+      rowId:ID.unique(),
+      data:data,
+         
+
+    })
+
+    return res 
+  }
+  catch(e){
+    throw new Error(e as string);
+  }
+}
+
+export const getBookings = async (userId:string) => {
+  try{
+    const bookings = await tablesDB.listRows({
+      databaseId:appwriteConfig.databaseId,
+      tableId:'bookings',
+      queries:[Query.equal('customerId', userId)]
+    })
+    return bookings.rows
+  }
+
+  catch(e){
+    throw new Error(e as string)
+  }
+}
+
+
+export const findActiveBookingForSlot = async (
+  customerId: string,
+  eventId: string,
+  scheduledAt: string
+) => {
+  const res = await tablesDB.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: "bookings",
+    queries: [
+      Query.equal("customerId", customerId),
+      Query.equal("eventId", eventId),
+      Query.equal("scheduledAt", scheduledAt),
+      Query.equal("status", ["pending_payment", "paid"]), // active — not cancelled/refunded/settled
+      Query.limit(1),
+    ],
+  });
+  return res.rows?.[0] ?? null;
+};
+
+
+export const deleteBooking = async (bookingId: string) => {
+  try {
+    await tablesDB.deleteRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId: "bookings",
+      rowId: bookingId,
+    });
+  } catch (e) {
+    // best-effort — don't let cleanup failure mask the original error to the user
+    console.error("Failed to delete orphaned booking:", e);
+  }
+};

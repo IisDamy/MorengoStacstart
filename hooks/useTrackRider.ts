@@ -70,6 +70,8 @@ export const useTrackRiderLocation = (
           setLastUpdatedAt(updatedDelivery.$updatedAt);
         }
       },
+       // payout
+      ()=>{},
       currentUserId
     );
 

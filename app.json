@@ -4,7 +4,7 @@
     "slug": "DeliverU",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icons/morengoLogo.png",
     "scheme": "appwrite-callback-696acfc00004ad2c375b",
     "userInterfaceStyle": "automatic",
      "assetBundlePatterns": [
@@ -16,10 +16,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#57a886",
+        "foregroundImage": "./assets/icons/morengoLogo.png",
+        "backgroundImage": "./assets/icons/morengoLogo.png",
+        "monochromeImage": "./assets/icons/morengoLogo.png"
       },
         "permissions": ["ACCESS_FINE_LOCATION"],
       "edgeToEdgeEnabled": true,
@@ -38,11 +38,11 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logo.png",
+          "image": "./assets/icons/morengoLogo.png",
           "resizeMode": "contain",
-          "backgroundColor": "#2F80ED",
+          "backgroundColor": "#57a886",
           "dark": {
-            "image": "./assets/images/logo.png",
+            "image": "./assets/icons/morengoLogo.png",
             "backgroundColor": "#000000"
           },
           "imageWidth": 200

@@ -67,7 +67,7 @@ export default function SignUp() {
           className="text-white text-3xl text-center"
           style={{
             fontFamily: "Crispy",
-            color: color.morange,
+            color: color.moregreen,
             letterSpacing: 0,
             textShadowColor: "white",
             textShadowOffset: { width: -0.5, height: 0.5 },
@@ -78,7 +78,7 @@ export default function SignUp() {
         </Text>
       </View>
 
-      <View className="flex-row items-center mt-4 mb-0">
+      <View className="flex-row items-center pt-2 mb-0">
         <Text className="text-left tracking-wide">
           Already have an account?{" "}
           <Link href={"./sign-in"} className="text-green-300">

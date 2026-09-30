@@ -220,13 +220,13 @@ const location = () => {
       />
 
       {/* Small banner while a rider is out for delivery */}
-      {riderCoords && (
+      {/* {riderCoords && (
         <View className="w-[89%] absolute top-6 bg-white/90 rounded-2xl p-3">
           <Text className="font-[Nunito-bold] text-sm text-center">
             Your rider is on the way
           </Text>
         </View>
-      )}
+      )} */}
 
       {/* SEARCH */}
       <View className="w-full px-12 items-center  absolute top-16">
@@ -277,11 +277,12 @@ const location = () => {
       </View>
 
       {/* SIDE BUTTONS */}
-      <View className="absolute top-[35%] right-[30] items-center gap-10">
+      <View className="absolute top-[35%] right-[20] items-center gap-10">
         <View>
           <LocationSideButton
             name="add"
             color="#FDBA74"
+            textf="Save new vendor"
             onPress={() => {
               setIsSaveVendorOpened(false);
               setIsSaveUserOpened((prev) => !prev);
@@ -294,22 +295,24 @@ const location = () => {
           />
         </View>
 
-        {!(user?.role === "customer") && (
+        {/* {!(user?.role === "customer") && (
           <View>
             <LocationSideButton
               name="add-location-alt"
               color="green"
+              
               onPress={() => {
                 setIsSaveUserOpened(false);
                 setIsSaveVendorOpened((prev) => !prev);
               }}
             />
           </View>
-        )}
+        )} */}
 
         <LocationSideButton
           name="gps-fixed"
           color="red"
+          textf="Open location"
           onPress={goToUserLocation}
         />
       </View>

@@ -64,6 +64,8 @@ export const getCurrentLocation = async () => {
             locationation.coords.longitude,
             locationation.coords.latitude,
           ];
+
+          
           return coords;
   }
   catch(e){

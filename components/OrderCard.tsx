@@ -1,22 +1,27 @@
 import { View, Text, Pressable, Image } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { color, images } from '@/constants'
 import { CustomButton } from '@/components'
-import { Order, User } from '@/types'
+import { Order, User, DeliveryOpts } from '@/types'
 import StatusPill from './StatusPill'
 import { getDisputeTimeLeft } from '@/lib/utils'
+import { Alert } from 'react-native'
+import useNotificationStore from '@/store/notification.store'
+
+
 
 interface OrderCardProps {
   order: Order
   user: User | null
   onCancel: (orderId: string) => void
+  payoutInfo: {status:string, failureReason:string, orderId:string}
   onPay: (order: Order) => void
   onDispute: (order: Order) => void
   canPay?: boolean
   canCancel?: boolean
   canDispute?: boolean
-  deliveryOffers?: any[]
-  onSelectRider?: (order: Order, offer: any) => void
+  deliveryOffers?: DeliveryOpts[]
+  onSelectRider?: (order: Order, offer: DeliveryOpts) => void
 }
 
 const OrderCard = ({
@@ -28,10 +33,13 @@ const OrderCard = ({
   canPay = false,
   canCancel = false,
   canDispute = false,
+  payoutInfo,
   deliveryOffers = [],
   onSelectRider,
 }: OrderCardProps) => {
   const [disputeTimeLeft, setDisputeTimeLeft] = useState(() => (canDispute ? getDisputeTimeLeft(order) : 0))
+  const [isPaid, setIsPaid] = useState(false)
+  const {addMsg, msgs} = useNotificationStore()
 
   useEffect(() => {
     if (!canDispute) return
@@ -41,6 +49,42 @@ const OrderCard = ({
   }, [canDispute, order.$updatedAt])
 
   const disputeExpired = disputeTimeLeft <= 0
+
+  // this card only cares about offers for its own order
+  const myDeliveryOffers = useMemo(
+    () => deliveryOffers.filter((offer) => offer.orderId === order.$id),
+    [deliveryOffers, order.$id]
+  )
+
+  useEffect(()=>{
+    if (payoutInfo){
+      if (payoutInfo.orderId !== order.$id ) return
+
+     if (payoutInfo.status === 'failed' ) {
+        Alert.alert(payoutInfo.failureReason)
+          addMsg({Text:payoutInfo.failureReason, type:'failure'})
+        setIsPaid(false)
+        return
+      }
+
+        if (payoutInfo.status === 'reversed' ) {
+        Alert.alert('Trasaction has been reversed')
+          addMsg({Text:'Transaction reversed', type:'failure'})
+        setIsPaid(false)
+        return
+      }
+
+     
+      Alert.alert(payoutInfo.status)
+      addMsg({Text:`Order ${payoutInfo.status}`, type:'success'})
+    }
+      
+
+  },[
+    payoutInfo
+  ])
+
+
 
   return (
     <View
@@ -60,10 +104,8 @@ const OrderCard = ({
         <StatusPill status={order.status} />
       </View>
 
-      {/* Delivery address */}
-      <Text className='text-[12px] font-[Nunito-medium] text-zinc-500 mb-3'>
-        Delivering to {JSON.parse(order.userAddress)?.description || 'N/A'}
-      </Text>
+      
+    
 
       {order.riderId && (
         <View className='flex-row items-center mb-3'>
@@ -71,8 +113,16 @@ const OrderCard = ({
           <Image className='w-4 h-4' source={images.check} />
           <Text className='capitalize text-zinc-500 text-[11px] font-[Nunito-bold]'> {order.riderName}</Text>
         </View>
-      )}
 
+      )}
+        {/* Delivery address */}
+        <View className='py-6 pl-2  border-zinc-200 bg-zinc-50 justify-center mr-4 rounded-[10] mb-3'>
+              <Text className='text-[12px] font-[Nunito-medium]  text-zinc-500 '>
+        Delivering to {JSON.parse(order.userAddress)?.description || 'N/A'}
+      </Text>
+
+        </View>
+      
       {/* Items */}
       <View className='rounded-[12] bg-zinc-50 px-3'>
         {order.items.map((item, idx) => (
@@ -108,12 +158,12 @@ const OrderCard = ({
       </View>
 
       {/* Rider offers — pending orders only, waiting for the customer to pick one */}
-      {order.status === 'pending' && deliveryOffers.length > 0 && (
+      {order.status === 'pending' && myDeliveryOffers.length > 0 && (
         <View className='mt-3 pt-3 border-t border-zinc-200'>
           <Text className='text-[11px] py-2 font-[Nunito-bold] uppercase text-zinc-400 mb-2'>
             Select rider and delivery fee
           </Text>
-          {deliveryOffers.map((offer) => (
+          {myDeliveryOffers.map((offer) => (
             <Pressable
               key={offer.$id}
               onPress={() => onSelectRider?.(order, offer)}
@@ -134,7 +184,10 @@ const OrderCard = ({
         <View className='flex-row gap-3 mt-4'>
           {canPay && (
             <View className='flex-1'>
-              <CustomButton textStyle='text-[12px]' title='Make Payment' style='bg-green-500 w-full' onPress={() => onPay(order)} />
+              <CustomButton textStyle='text-[12px]' title='Make Payment' disabled={isPaid}  style='bg-green-500 w-full'  onPress={() => {
+                onPay(order)
+                setIsPaid(true)
+                }} />
             </View>
           )}
           {canDispute && !disputeExpired && (

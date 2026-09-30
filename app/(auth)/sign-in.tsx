@@ -65,7 +65,7 @@ export default function SignIn() {
           className=" text-3xl text-center"
           style={{
             fontFamily: "Crispy",
-            color: color.morange,
+            color: color.moregreen,
             letterSpacing: 0,
             textShadowColor: "white",
             textShadowOffset: { width: -0.5, height: 0.5 },
@@ -86,7 +86,7 @@ export default function SignIn() {
         keyboardType="default"
 
         /> */}
-      <View className="gap-10 flex pt-10">
+      <View className="gap-10 flex pt-2">
         {/* maybe welcome to morengo here, or get started with morengo */}
         <View>
           <CustomInput

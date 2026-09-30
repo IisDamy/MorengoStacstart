@@ -8,19 +8,20 @@ import Animated, {
   withSequence,
   Easing
 } from 'react-native-reanimated';
-
+import { color as colore } from '@/constants';
 
 
 interface LocationSideButtonProps{
     name:string,
     onPress:() => void,
-    color:string
+    color:string,
+    textf: string
 }
 
 
 
 
-const LocationSideButton = ({name, onPress, color}:LocationSideButtonProps) => {
+const LocationSideButton = ({name, onPress, color, textf}:LocationSideButtonProps) => {
 
 
       const scale = useSharedValue(1);
@@ -43,17 +44,26 @@ const LocationSideButton = ({name, onPress, color}:LocationSideButtonProps) => {
             animate()
             onPress()
         }}>
-          <Animated.View className={`rounded-full bg-${color}-300 justify-center items-center w-11 border-${color}-500 border-[2px] h-11 border`}
+          <Animated.View className={`rounded-full bg-${color}-300 justify-center items-center  border-${color}-500 border-[1px]  border`}
             style={[animatedStyle,[{
-                backgroundColor:name==='add'?'#FDBA74':name==='add-location-alt'?'#6ee7b7':'#fca5a5',
-                borderColor:name==='add'?'#f97316':name==='add-location-alt'?'#22C55E':'#EF4444'
+                backgroundColor:name==='add'?'#a5e0a9':name==='add-location-alt'?'#cbe76e':'#abd6e4',
+                borderColor:colore.morange
             }]]}
           >
-           {name==='add'?<Text className="text-3xl text-white font-[Nunito-bold]">+</Text>: 
-                         <MaterialIcons
+           
+           {name==='add'?<View className='flex-row items-center justify-center gap-2 h-12 w-32'>
+            <Text className='text-xs text-zinc-500 font-[Nunito-regular]'>Add new location</Text>
+            <Text className="text-2xl text-white font-[Nunito-bold]">+</Text>
+           </View>: 
+           <View className='flex-row items-center gap-2 h-12 justify-center w-32'>
+            <Text className='text-xs text-zinc-500 font-[Nunito-regular]'>{textf}</Text>
+             <MaterialIcons
                             name={name}
                             color={'white'}
-                            size={20}/>}
+                            size={20}/>
+           </View>
+                        }
+                        
                         
           </Animated.View>
         </TouchableOpacity>

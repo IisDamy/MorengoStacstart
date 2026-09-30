@@ -3,6 +3,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Camera, MapView, MarkerView } from "@maplibre/maplibre-react-native";
 import React, { useEffect } from "react";
 import { Image, View } from "react-native";
+import useActiveOrderStore from "@/store/activeOrderStore";
+
 
 // change image of store
 const OSM_STYLE = {
@@ -33,6 +35,7 @@ type LocationMapProps = {
   zoomLevel?: number;
   /** Live rider position while an order is being delivered - omit/null to hide */
   riderCoords?: [number, number] | null;
+  
 };
 
 const LocationMap = ({
@@ -43,9 +46,7 @@ const LocationMap = ({
   riderCoords = null,
 }: LocationMapProps) => {
 
-  useEffect(()=>{
-    console.log(riderCoords)
-  },[riderCoords])
+ const {riderOpts} = useActiveOrderStore()
 
   
   return (
@@ -75,6 +76,19 @@ const LocationMap = ({
               </MarkerView>
             ))}
 
+            {
+              riderOpts && (
+                riderOpts.map(rider => (
+                <MarkerView coordinate={[rider.lat, rider.lng]}>
+                    <MaterialIcons
+                  name="pedal-bike"
+                  size={30}
+                  color={'yellow'}
+                />
+                </MarkerView>))
+              )
+            }
+{/* 
           {riderCoords && (
             <MarkerView coordinate={riderCoords}>
               <View
@@ -86,17 +100,17 @@ const LocationMap = ({
                   alignItems: "center",
                   justifyContent: "center",
                   borderWidth: 2,
-                  borderColor: "#ffffff",
+                  borderColor: "#000000",
                 }}
               >
                 <MaterialIcons
-                  name="delivery-dining"
-                  size={20}
-                  color="#ffffff"
+                  name="pedal-bike"
+                  size={30}
+                  color={color.moregreen}
                 />
               </View>
             </MarkerView>
-          )}
+          )} */}
         </>
       )}
     </MapView>
