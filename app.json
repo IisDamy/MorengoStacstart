@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Morengo-Food",
+    "name": "Morengo",
     "slug": "DeliverU",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/morengoLogo.png",
+    "icon": "./assets/icons/morengologo.png",
     "scheme": "appwrite-callback-696acfc00004ad2c375b",
     "userInterfaceStyle": "automatic",
      "assetBundlePatterns": [
@@ -16,15 +16,15 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#57a886",
-        "foregroundImage": "./assets/icons/morengoLogo.png",
-        "backgroundImage": "./assets/icons/morengoLogo.png",
-        "monochromeImage": "./assets/icons/morengoLogo.png"
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/icons/morengologo.png",
+        "backgroundImage": "./assets/icons/morengologo.png",
+        "monochromeImage": "./assets/icons/morengologo.png"
       },
         "permissions": ["ACCESS_FINE_LOCATION"],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.Morengo.DeliverU",
+      "package": "com.morengo.app",
       "googleServicesFile": "./google-services.json"
 
     },
@@ -33,32 +33,31 @@
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
     },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/icons/morengoLogo.png",
-          "resizeMode": "contain",
-          "backgroundColor": "#57a886",
-          "dark": {
-            "image": "./assets/icons/morengoLogo.png",
-            "backgroundColor": "#000000"
-          },
-          "imageWidth": 200
-        }
-      ],
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "react-native",
-          "organization": "damilola-kb"
-        }
-      ],
-      "@sentry/react-native",
-      "@maplibre/maplibre-react-native"
-    ],
+   "plugins": [
+  "expo-router",
+  [
+    "expo-splash-screen",
+    {
+      "image": "./assets/icons/morengologo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000",
+      "dark": {
+        "image": "./assets/icons/morengologo.png",
+        "backgroundColor": "#000000"
+      },
+      "imageWidth": 200
+    }
+  ],
+  [
+    "@sentry/react-native/expo",
+    {
+      "url": "https://sentry.io/",
+      "project": "react-native",
+      "organization": "damilola-kb"
+    }
+  ],
+  "@maplibre/maplibre-react-native"
+],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

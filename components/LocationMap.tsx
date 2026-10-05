@@ -88,7 +88,7 @@ const LocationMap = ({
                 </MarkerView>))
               )
             }
-{/* 
+
           {riderCoords && (
             <MarkerView coordinate={riderCoords}>
               <View
@@ -110,7 +110,7 @@ const LocationMap = ({
                 />
               </View>
             </MarkerView>
-          )} */}
+          )}
         </>
       )}
     </MapView>
