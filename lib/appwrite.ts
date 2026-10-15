@@ -1104,3 +1104,29 @@ export const deleteBooking = async (bookingId: string) => {
     console.error("Failed to delete orphaned booking:", e);
   }
 };
+
+
+
+export const getDashboardStats = async (user) => {
+  // if (user.role === "rider") {
+  //   const d = await databases.getDocument(
+  //     appwriteConfig.databaseId, appwriteConfig.usersCollectionId, user.$id
+  //   );
+  //   return { totalRevenue: d.totalRevenue, totalOrders: d.totalOrders };
+  // }
+
+  const res = await tablesDB.listRows(
+    {
+      databaseId: appwriteConfig.databaseId,
+      tableId: 'vendors',
+      queries: [Query.equal("ownerId", user.$id), Query.limit(100)]
+    }
+  );
+  return res.rows.reduce(
+    (t, v) => ({
+      totalRevenue: t.totalRevenue + (v.totalRevenue || 0),
+      totalOrders: t.totalOrders + (v.totalOrders || 0),
+    }),
+    { totalRevenue: 0, totalOrders: 0 }
+  );
+};

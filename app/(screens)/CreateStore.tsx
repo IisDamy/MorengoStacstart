@@ -217,14 +217,15 @@ const CreateStore = () => {
 
     setIsSubmitting(true);
     try {
-      // You can wire ownerId from your auth store here
+      const locationCoords = coords ?? [];
+
       await createVendor({
         name,
         description,
         imageUrl: storeImageId ?? undefined,
         open,
         closes,
-        coords,
+        coords: locationCoords,
         category: categories,
         ownerId: "replace-with-auth-user-id",
       });
@@ -252,21 +253,20 @@ const CreateStore = () => {
   
   
   
-    useEffect(()=>{
-      if (locationSharing){
-         async () => {
-          try {
-             await getCurrentLocation()     
-          }
-          catch (e){
-            setLocationSharing(false)
-            Alert.alert("Error", e?.message || "Location sharing failed")
-          }
-         }
-  
-      } 
-  
-    },[locationSharing])
+    useEffect(() => {
+      if (!locationSharing) return;
+
+      const syncLocation = async () => {
+        try {
+          await getCurrentLocation();
+        } catch (error: any) {
+          setLocationSharing(false);
+          Alert.alert("Error", error?.message || "Location sharing failed");
+        }
+      };
+
+      syncLocation();
+    }, [locationSharing, getCurrentLocation]);
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (

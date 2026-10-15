@@ -4,7 +4,7 @@ import CustomButton from "@/components/ui/CustomButton";
 import CustomInput from "@/components/ui/CustomInput";
 import CustomRadio from "@/components/ui/CustomRadio";
 import { color } from "@/constants";
-import { createUser } from "@/lib/appwrite";
+import { createUser } from "@/services/appwrite/auth";
 import { Link, router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
@@ -26,7 +26,7 @@ export default function SignUp() {
   const [isInrerestedPartner, setIsInterestedPartner] = useState(false);
 
   useEffect(() => {
-    if (!form.name || !form.email || !form.password || !form.number)
+    if (!form.name || !form.email || !form.password || !form.phone)
       setIsDisabled(true);
     else setIsDisabled(false);
   }, [form]);

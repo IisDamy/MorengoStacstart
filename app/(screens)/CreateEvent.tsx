@@ -20,6 +20,7 @@ import {
 import { Calendar } from "react-native-calendars";
 import { useCurrentLocation } from "@/hooks/useCurrentLocation";
 import { EVENT_TYPES } from "@/constants";
+import type { EventPayload } from "@/types";
 // ─── Constants ────────────────────────────────────────────────────────────
 
 //  laundry:"shirt-outline",
@@ -202,13 +203,13 @@ const CreateService = () => {
 
       await createEvent({
         name,
-        type,
+        type: type as EventPayload["type"],
         description,
         offers: JSON.stringify(
           offers.map((o) => ({ name: o.name.trim(), price: Number(o.price) })),
         ),
         weekly,
-        coords,
+        coords: coords ?? [],
         dotw: JSON.stringify(weekly ? dotw : []),
         duration: durationNum,
         openTime: formatTime(openTime),
@@ -228,21 +229,20 @@ const CreateService = () => {
 
 
 
-  useEffect(()=>{
-    if (locationSharing){
-       async () => {
-        try {
-           await getCurrentLocation()     
-        }
-        catch (e){
-          setLocationSharing(false)
-          Alert.alert("Error", e?.message || "Location sharing failed")
-        }
-       }
+  useEffect(() => {
+    if (!locationSharing) return;
 
-    } 
+    const syncLocation = async () => {
+      try {
+        await getCurrentLocation();
+      } catch (error: any) {
+        setLocationSharing(false);
+        Alert.alert("Error", error?.message || "Location sharing failed");
+      }
+    };
 
-  },[locationSharing])
+    syncLocation();
+  }, [locationSharing, getCurrentLocation]);
 
   // ── Render ───────────────────────────────────────────────────────────────
 

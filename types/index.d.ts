@@ -11,8 +11,12 @@ export interface MenuItem extends Models.Document {
     
 }
 
-declare module '*.mp4'
-declare module '*.png, *.jpeg'
+declare module "*.mp4";
+declare module "*.png";
+declare module "*.jpg";
+declare module "*.jpeg";
+declare module "*.gif";
+declare module "*.webp";
 
 export interface Category extends Models.Document {
     name: string;
@@ -125,18 +129,20 @@ interface CustomHeaderProps {
 
 interface CustomInputProps {
     placeholder?: string;
-    maxLength?:number | undefined;
+    maxLength?: number | undefined;
     value?: string;
     onChangeText?: (text: string) => void;
-    label: string;
+    label?: string;
     secureTextEntry?: boolean;
     keyboardType?: "default" | "email-address" | "numeric" | "phone-pad";
-    autoFocus?:false,
-    style?:string,
-    multiline:boolean,
+    autoFocus?: boolean;
+    style?: string;
+    multiline?: boolean;
     plain?: boolean; // no background / border — just the text
     fill?: boolean; // grow to fill whatever space its parent gives it
 }
+
+export type CustomInputField = CustomInputProps;
 
 interface ProfileFieldProps {
     label: string;
@@ -180,7 +186,7 @@ interface ManifestoProps {
 
 interface CustomComponentProps {
     value: string;
-    onValueChange: (value: { name: string ,coords: number[] }) => void;
+    onValueChange: (value: string) => void;
 }
 
 // interface Order extends Models.Document {
@@ -258,20 +264,27 @@ interface DeliveryOpts extends Models.Document {
 }
 
 
-export interface EventPayload {
+export interface EventPayload extends Models.Document {
+  $id?: string;
+  $createdAt?: string;
+  $updatedAt?: string;
+  $permissions?: string[];
+  $collectionId?: string;
+  $databaseId?: string;
+  $sequence?: number;
   name: string;
   type: "cosmetics" | "handywork" | "private lessons" | "barbing" | "music" | "hosting" | "laundry" | "printing" | "gaming" | "photography" | "other";
   description: string;
-  offers: string; // JSON-stringified ServiceOffer[]
+  offers: string;
   weekly: boolean;
-  dotw: string; // JSON-stringified array of days, e.g. '["Mon","Wed"]' — empty '[]' when weekly is false
-  duration: number; // minutes
-  openTime: string; // e.g. "9:00 AM" — start of the daily booking window
-  closeTime: string; // e.g. "5:00 PM" — end of the daily booking window
+  dotw: string;
+  duration: number;
+  openTime: string;
+  closeTime: string;
   locationText: string;
   coords: number[];
   userId: string;
-  dateTimeOnce: string[]; // specific one-off dates, e.g. ["2026-09-01"] — empty [] when weekly is true
+  dateTimeOnce: string[];
 }
 
 export interface BookingPayload {
@@ -283,14 +296,11 @@ export interface BookingPayload {
   offerName: string;
   eventName: string;
   scheduledAt: string;
-    eventType: string;
-    eventLocation: string;
-    eventCoords?: number[],
-        status: "pending",
-        offerName: string,
-     total: number;
-  status?: "pending_payment" | "paid" | "active" | "completed" |  "cancelled";
-
+  eventType: string;
+  eventLocation: string;
+  eventCoords?: number[];
+  status?: "pending" | "pending_payment" | "paid" | "active" | "completed" | "cancelled";
+  total: number;
 }
 
 export type ServiceOffer = {

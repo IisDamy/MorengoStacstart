@@ -57,7 +57,7 @@ const FILTERS = [
   { key: "failed", label: "Failed" },
 ];
 
-function formatNaira(amountKobo, currency = "NGN") {
+function formatNaira(amountKobo: number, currency = "NGN") {
   const value = (amountKobo || 0) / 100;
   try {
     return new Intl.NumberFormat("en-NG", {
@@ -70,7 +70,7 @@ function formatNaira(amountKobo, currency = "NGN") {
   }
 }
 
-function formatDate(iso) {
+function formatDate(iso?: string) {
   if (!iso) return "—";
   const d = new Date(iso);
   return d.toLocaleDateString("en-NG", {
@@ -83,7 +83,7 @@ function formatDate(iso) {
   });
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status }: { status?: string }) {
   const meta = STATUS_META[status] || {
     label: status || "Unknown",
     color: COLORS.textMuted,
@@ -97,7 +97,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function RoleTag({ role }) {
+function RoleTag({ role }: { role?: string }) {
   const meta = ROLE_META[role] || { label: role || "—", color: COLORS.textMuted };
   return (
     <View style={styles.roleTag}>
@@ -106,7 +106,7 @@ function RoleTag({ role }) {
   );
 }
 
-function PayoutCard({ item, onPress }) {
+function PayoutCard({ item, onPress }: { item: any; onPress?: (item: any) => void }) {
   const isFailed = item.status === "failed" || item.status === "retrying";
   return (
     <TouchableOpacity
@@ -181,6 +181,13 @@ export default function PayoutHistory({
   onRefresh,
   onPayoutPress,
   onLoadMore,
+}: {
+  payouts?: any[];
+  loading?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+  onPayoutPress?: (item: any) => void;
+  onLoadMore?: () => void;
 }) {
   const [activeFilter, setActiveFilter] = useState("all");
 

@@ -1,9 +1,9 @@
-import { getCurrentUser } from "@/lib/appwrite";
-import { User } from "@/types";
-import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
+import { getCurrentUser } from "@/services/appwrite/auth";
+import type { User } from "@/types";
 
 type AuthState = {
   isAuthenticated: boolean;
@@ -18,40 +18,37 @@ type AuthState = {
 
 const useAuthStore = create<AuthState>()(
   persist(
-     (set, get) => ({
-  isAuthenticated: false,
-  user: null,
-  isLoading: true,
+    (set) => ({
+      isAuthenticated: false,
+      user: null,
+      isLoading: true,
 
-  setIsAuthenticated: (value) => set({ isAuthenticated: value }),
-  setUser: (user) => set({ user: user }),
-  setIsLoading: (value) => set({ isLoading: value }),
+      setIsAuthenticated: (value) => set({ isAuthenticated: value }),
+      setUser: (user) => set({ user }),
+      setIsLoading: (value) => set({ isLoading: value }),
 
+      fetchAuthenticatedUser: async () => {
+        set({ isLoading: true });
 
-  fetchAuthenticatedUser: async () => {
-    
-    set({ isLoading: true });
-    
-    try {
-      
-    
-      const user = await getCurrentUser();
-      if (user ) set({ isAuthenticated: true, user: user as User});
-      else set({ isAuthenticated: false, user: null });
-    } catch (e) {
-      console.log("fetchAuthenticatedUser error", e);
-      set({ isAuthenticated: false, user: null });
-    } finally {
-      set({ isLoading: false });
+        try {
+          const user = await getCurrentUser();
+          set({
+            isAuthenticated: Boolean(user),
+            user: (user as User) ?? null,
+          });
+        } catch (error) {
+          console.log("fetchAuthenticatedUser error", error);
+          set({ isAuthenticated: false, user: null });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+    }),
+    {
+      name: "user",
+      storage: createJSONStorage(() => AsyncStorage),
     }
-  },
-}),
-{
-  name:'user',
-  storage: createJSONStorage(()=> AsyncStorage)
-
-}
   )
- );
+);
 
 export default useAuthStore;

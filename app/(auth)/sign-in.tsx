@@ -1,15 +1,12 @@
 import CustomButton from "@/components/ui/CustomButton";
 import CustomInput from "@/components/ui/CustomInput";
 import { color } from "@/constants";
-import {
-    SignIn as EmailSignIn,
-    OAuthSignIn,
-    refreshAuthStore,
-} from "@/lib/appwrite";
 import useAuthStore from "@/store/auth.store";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
+
+import { SignIn as EmailSignIn, OAuthSignIn } from "@/services/appwrite/auth";
 
 // bg will be decorated beautifully with probalbly orange color
 export default function SignIn() {
@@ -21,19 +18,20 @@ export default function SignIn() {
   const [form, setForm] = useState({ email: "", password: "" });
 
   const submit = async () => {
-    refreshAuthStore();
-    if (!form.email || !form.password)
+    if (!form.email || !form.password) {
       Alert.alert("Error", "Please enter valid email address and password");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await EmailSignIn({ email: form.email, password: form.password });
       Alert.alert("Success", "You have signed in successfully");
-
       router.replace("/(tabs)");
     } catch (error: any) {
       Alert.alert(
         "Error",
-        "There was an error encountered while signing in. Please check your credentials and try again.",
+        error.message || "There was an error encountered while signing in. Please check your credentials and try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -45,15 +43,17 @@ export default function SignIn() {
     try {
       const result = await OAuthSignIn();
       if (result) {
-        fetchAuthenticatedUser();
-      } else throw new Error();
+        await fetchAuthenticatedUser();
+      } else {
+        throw new Error("Failed to sign in with Google. Please try again.");
+      }
     } catch (error: any) {
       Alert.alert(
         "OAuth Error",
         error.message || "Failed to sign in with Google. Please try again.",
       );
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingGoogle(false);
     }
   };
 
@@ -92,11 +92,7 @@ export default function SignIn() {
           <CustomInput
             placeholder="Enter your email"
             value={form.email}
-            onChangeText={(text) => {
-              if (form.password.length < 6) {
-              }
-              setForm({ ...form, email: text });
-            }}
+            onChangeText={(text) => setForm({ ...form, email: text })}
             label="Email"
             keyboardType="email-address"
           />

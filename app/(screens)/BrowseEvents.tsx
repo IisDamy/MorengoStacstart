@@ -566,11 +566,17 @@ const BrowseEvents = () => {
   ) => {
     if (!bookingEvent || !user?.$id) return;
 
+    const eventId = bookingEvent.$id;
+    if (!eventId) {
+      Alert.alert("Error", "This service is missing its reference ID.");
+      return;
+    }
+
     const scheduledAt = parseTimeStringToDate(time, new Date(dateString));
     const scheduledAtIso = scheduledAt.toISOString();
 
     try {
-      const existing = await findActiveBookingForSlot(user.$id, bookingEvent.$id, scheduledAtIso);
+      const existing = await findActiveBookingForSlot(user.$id, eventId, scheduledAtIso);
       if (existing) {
         if (existing.status === "pending_payment") {
           Alert.alert(
@@ -591,7 +597,7 @@ const BrowseEvents = () => {
       const payload: BookingPayload = {
         customerId: user.$id,
         providerId: bookingEvent.userId,
-        eventId: bookingEvent.$id,
+        eventId: eventId,
         dateTime: dateString,
         time,
         scheduledAt: scheduledAtIso,
@@ -615,11 +621,11 @@ const BrowseEvents = () => {
       paymentRes = await RunPaystackAction("payment.initialize", {
         customerId: user.$id,
         customerEmail: user.email,
-        fieldId: booking.$id,
+        fieldId: booking.$id ?? "",
         field: "booking",
         total: offer.price,
         metadata: {
-          eventId: bookingEvent.$id,
+          eventId,
           eventName: bookingEvent.name,
           dateTime: dateString,
           time,
@@ -740,7 +746,7 @@ const BrowseEvents = () => {
       ) : (
         <FlatList
           data={filteredEvents}
-          keyExtractor={(item) => item.$id}
+          keyExtractor={(item) => item.$id ?? `${item.name}-${item.type}`}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32, gap: 14 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

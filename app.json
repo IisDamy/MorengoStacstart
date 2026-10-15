@@ -16,12 +16,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
+        "backgroundColor": "#FFFBF5",
         "foregroundImage": "./assets/icons/morengologo.png",
-        "backgroundImage": "./assets/icons/morengologo.png",
         "monochromeImage": "./assets/icons/morengologo.png"
       },
-        "permissions": ["ACCESS_FINE_LOCATION"],
+        "permissions": ["ACCESS_COARSE_LOCATION"],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.morengo.app",
@@ -40,12 +39,12 @@
     {
       "image": "./assets/icons/morengologo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000",
+      "backgroundColor": "#16181D",
       "dark": {
         "image": "./assets/icons/morengologo.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#16181D"
       },
-      "imageWidth": 200
+      "imageWidth": 140
     }
   ],
   [

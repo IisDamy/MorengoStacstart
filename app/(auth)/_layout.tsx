@@ -6,7 +6,7 @@ import {images} from '../../constants/index'
 import Sentry from '@sentry/react-native'
 import useAuthStore from '@/store/auth.store'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { refreshAuthStore, clearAuthStore } from '@/lib/appwrite'
+import { refreshAuthStore, clearAuthStore } from '@/services/appwrite/auth'
 
 
 const AuthLayout = () => {

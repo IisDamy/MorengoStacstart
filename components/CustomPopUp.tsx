@@ -4,14 +4,13 @@ import React,{useState} from 'react'
 // while this is visible  morengoaid screen should be disabled
 // user can't cancel popup until it's finished
 
-interface CustomPopUpProps{
-
-message:string,
-title:String,
-trigger:boolean
+interface CustomPopUpProps {
+  message?: string;
+  title?: string;
+  trigger?: boolean;
 }
 
-const CustomPopUp = ({message, title, trigger}:CustomPopUpProps) => {
+const CustomPopUp = ({ message = "", title = "Popup", trigger = false }: CustomPopUpProps) => {
   const [visible, setVisible] = useState(false);
 
   return (
